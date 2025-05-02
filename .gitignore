@@ -1,5 +1,32 @@
+# 👉 BỎ QUA CÁC FILE TẠM, BUILD, NODE MODULES
 node_modules/
 .next/
-.env
+out/
+dist/
+
+# 👉 BỎ CÁC FILE MÁY RIÊNG
 .DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 👉 BỎ THƯ MỤC ENV / CẤU HÌNH BẢO MẬT
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# 👉 VSCode settings
 .vscode/
+
+# 👉 Supabase auto files (nếu dùng CLI)
+supabase/.temp/
+supabase/.output/
+
+# 👉 Tailwind JIT cache (nếu có)
+.tailwind/
+
+# 👉 IDE config khác
+.idea/
