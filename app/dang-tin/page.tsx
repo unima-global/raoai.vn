@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 
 export default function DangTinPage() {
@@ -10,10 +11,17 @@ export default function DangTinPage() {
   const [uploading, setUploading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
+  const router = useRouter();
+
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
-      setUserId(data.session?.user.id || null);
+      const id = data.session?.user?.id || null;
+      if (!id) {
+        router.push('/login'); // Redirect nếu chưa login
+      } else {
+        setUserId(id);
+      }
     };
     getSession();
   }, []);
@@ -21,16 +29,12 @@ export default function DangTinPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!userId) {
-      alert('❌ Bạn phải đăng nhập trước khi đăng tin!');
-      return;
-    }
+    if (!userId) return;
 
     let image_url = null;
 
     if (image) {
       setUploading(true);
-
       const safeFileName = image.name
         .toLowerCase()
         .replace(/\s+/g, '-')
@@ -43,7 +47,7 @@ export default function DangTinPage() {
         .upload(filePath, image);
 
       if (uploadError) {
-        alert('❌ Lỗi khi upload ảnh: ' + uploadError.message);
+        alert('❌ Upload ảnh lỗi: ' + uploadError.message);
         setUploading(false);
         return;
       }
@@ -75,42 +79,35 @@ export default function DangTinPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">📝 Đăng Tin Mới</h1>
+        <h1 className="text-2xl font-bold mb-4">📝 Đăng Tin Mới</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Tiêu đề</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full border border-gray-300 p-2 rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Mô tả</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="w-full border border-gray-300 p-2 rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Ảnh (tuỳ chọn)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-              className="mt-1"
-            />
-          </div>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="w-full border border-gray-300 p-2 rounded"
+            placeholder="Tiêu đề"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            className="w-full border border-gray-300 p-2 rounded"
+            placeholder="Mô tả"
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImage(e.target.files?.[0] || null)}
+            className="block"
+          />
           <button
             type="submit"
             disabled={uploading}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            {uploading ? 'Đang upload ảnh...' : 'Đăng tin'}
+            {uploading ? 'Đang upload...' : 'Đăng tin'}
           </button>
         </form>
       </div>
