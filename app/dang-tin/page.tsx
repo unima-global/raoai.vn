@@ -1,15 +1,29 @@
 'use client';
 
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase'; // ← Dòng quan trọng!
 
 export default function DangTinPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`📝 Đã nhập: ${title} - ${description}`);
-    // TODO: Gửi lên Supabase ở bước sau
+
+    const { error } = await supabase.from('posts').insert([
+      {
+        title,
+        description,
+      },
+    ]);
+
+    if (error) {
+      alert('❌ Lỗi khi đăng tin: ' + error.message);
+    } else {
+      alert('✅ Tin đã được lưu vào Supabase!');
+      setTitle('');
+      setDescription('');
+    }
   };
 
   return (
