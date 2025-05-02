@@ -7,6 +7,7 @@ interface Post {
   id: string;
   title: string;
   description: string;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -46,6 +47,13 @@ export default function TinCuaToiPage() {
           <ul className="space-y-4">
             {posts.map((post) => (
               <li key={post.id} className="bg-white p-4 rounded shadow">
+                {post.image_url && (
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="mb-3 rounded w-full object-cover max-h-64"
+                  />
+                )}
                 <h2 className="text-lg font-semibold">{post.title}</h2>
                 <p className="text-gray-600">{post.description}</p>
                 <p className="text-xs text-gray-400 mt-2">
