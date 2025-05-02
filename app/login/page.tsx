@@ -1,11 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (user) {
+        // 🔁 Redirect nếu đã login
+        router.push('/tin-cua-toi');
+      }
+    };
+    checkSession();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +35,7 @@ export default function LoginPage() {
     if (error) {
       setStatus('❌ Lỗi: ' + error.message);
     } else {
-      setStatus('✅ Magic link đã được gửi đến email. Hãy kiểm tra hộp thư!');
+      setStatus('✅ Magic link đã được gửi. Hãy kiểm tra email!');
     }
   };
 
