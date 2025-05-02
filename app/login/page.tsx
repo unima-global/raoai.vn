@@ -11,7 +11,12 @@ export default function LoginPage() {
     e.preventDefault();
     setStatus('Đang gửi magic link...');
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: 'https://raoai.vn/login',
+      },
+    });
 
     if (error) {
       setStatus('❌ Lỗi: ' + error.message);
