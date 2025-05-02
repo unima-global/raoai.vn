@@ -16,7 +16,15 @@ export default function DangTinPage() {
 
     if (image) {
       setUploading(true);
-      const filePath = `images/${Date.now()}-${image.name}`;
+
+      // ✅ Làm sạch tên file để tránh lỗi
+      const safeFileName = image.name
+        .toLowerCase()
+        .replace(/\s+/g, '-')           // khoảng trắng → dấu gạch
+        .replace(/[^a-z0-9.\-]/g, '');  // bỏ ký tự đặc biệt & dấu tiếng Việt
+
+      const filePath = `images/${Date.now()}-${safeFileName}`;
+
       const { error: uploadError } = await supabase.storage
         .from('images')
         .upload(filePath, image);
@@ -37,7 +45,7 @@ export default function DangTinPage() {
         title,
         description,
         image_url,
-        user_id: 'demo', // ← dòng bạn cần thêm để lọc “tin của tôi”
+        user_id: 'demo', // Gắn user giả để lọc tin
       },
     ]);
 
