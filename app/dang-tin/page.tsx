@@ -10,6 +10,7 @@ export default function DangTinPage() {
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [loadingSession, setLoadingSession] = useState(true);
 
   const router = useRouter();
 
@@ -18,17 +19,17 @@ export default function DangTinPage() {
       const { data } = await supabase.auth.getSession();
       const id = data.session?.user?.id || null;
       if (!id) {
-        router.push('/login'); // Redirect nếu chưa login
+        router.push('/login');
       } else {
         setUserId(id);
       }
+      setLoadingSession(false);
     };
     getSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!userId) return;
 
     let image_url = null;
@@ -47,7 +48,7 @@ export default function DangTinPage() {
         .upload(filePath, image);
 
       if (uploadError) {
-        alert('❌ Upload ảnh lỗi: ' + uploadError.message);
+        alert('❌ Lỗi upload ảnh: ' + uploadError.message);
         setUploading(false);
         return;
       }
@@ -69,12 +70,20 @@ export default function DangTinPage() {
     if (error) {
       alert('❌ Lỗi khi đăng tin: ' + error.message);
     } else {
-      alert('✅ Tin đã được đăng!');
+      alert('✅ Đăng thành công!');
       setTitle('');
       setDescription('');
       setImage(null);
     }
   };
+
+  if (loadingSession) {
+    return (
+      <main className="min-h-screen bg-gray-100 p-8">
+        <p className="text-center text-gray-500">🔄 Đang kiểm tra đăng nhập...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 p-8">
@@ -86,15 +95,15 @@ export default function DangTinPage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-gray-300 p-2 rounded"
             placeholder="Tiêu đề"
+            className="w-full border p-2 rounded"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            className="w-full border border-gray-300 p-2 rounded"
-            placeholder="Mô tả"
+            placeholder="Mô tả chi tiết"
+            className="w-full border p-2 rounded"
           />
           <input
             type="file"
