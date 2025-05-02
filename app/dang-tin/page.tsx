@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase'; // ← Dòng quan trọng!
+import { supabase } from '../../lib/supabase'
 
 export default function DangTinPage() {
   const [title, setTitle] = useState('');
