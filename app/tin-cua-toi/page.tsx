@@ -15,11 +15,14 @@ export default function TinCuaToiPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fakeUserId = 'demo'; // ← Giả định user chưa login
+
   useEffect(() => {
     const fetchPosts = async () => {
       const { data, error } = await supabase
         .from('posts')
         .select('*')
+        .eq('user_id', fakeUserId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -42,7 +45,7 @@ export default function TinCuaToiPage() {
         {loading ? (
           <p>⏳ Đang tải...</p>
         ) : posts.length === 0 ? (
-          <p>🙁 Chưa có tin nào được đăng.</p>
+          <p>🙁 Bạn chưa đăng tin nào.</p>
         ) : (
           <ul className="space-y-4">
             {posts.map((post) => (
