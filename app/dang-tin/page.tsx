@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
 export default function DangTinPage() {
@@ -8,20 +8,33 @@ export default function DangTinPage() {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUserId(data.session?.user.id || null);
+    };
+    getSession();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!userId) {
+      alert('❌ Bạn phải đăng nhập trước khi đăng tin!');
+      return;
+    }
 
     let image_url = null;
 
     if (image) {
       setUploading(true);
 
-      // ✅ Làm sạch tên file để tránh lỗi
       const safeFileName = image.name
         .toLowerCase()
-        .replace(/\s+/g, '-')           // khoảng trắng → dấu gạch
-        .replace(/[^a-z0-9.\-]/g, '');  // bỏ ký tự đặc biệt & dấu tiếng Việt
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9.\-]/g, '');
 
       const filePath = `images/${Date.now()}-${safeFileName}`;
 
@@ -45,14 +58,14 @@ export default function DangTinPage() {
         title,
         description,
         image_url,
-        user_id: 'demo', // Gắn user giả để lọc tin
+        user_id: userId,
       },
     ]);
 
     if (error) {
       alert('❌ Lỗi khi đăng tin: ' + error.message);
     } else {
-      alert('✅ Tin đã được đăng kèm ảnh!');
+      alert('✅ Tin đã được đăng!');
       setTitle('');
       setDescription('');
       setImage(null);
