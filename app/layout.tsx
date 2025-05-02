@@ -1,7 +1,7 @@
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
-      <body style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <body style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
         {children}
       </body>
     </html>
