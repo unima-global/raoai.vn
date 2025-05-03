@@ -20,7 +20,7 @@ export default function TinCuaToiPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🚀 useEffect ĐÃ CHẠY');
+    console.log('🚀 useEffect chạy');
 
     const fetchPosts = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -40,8 +40,7 @@ export default function TinCuaToiPage() {
         .eq('user_id', id)
         .order('created_at', { ascending: false });
 
-      console.log('📦 Posts fetch được:', posts);
-
+      console.log("📦 Posts fetch được:", posts);
       setPosts(posts || []);
       setLoading(false);
     };
@@ -62,9 +61,7 @@ export default function TinCuaToiPage() {
             <h2 className="font-semibold">{post.title}</h2>
             <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
             <p className="mt-2">{post.description}</p>
-            {post.image_url && (
-              <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
-            )}
+            {post.image_url && <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />}
           </div>
         ))
       )}
