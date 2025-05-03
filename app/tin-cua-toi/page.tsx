@@ -24,6 +24,8 @@ export default function TinCuaToiPage() {
       const { data: { user } } = await supabase.auth.getUser();
       const id = user?.id || null;
 
+      console.log('🧠 user_id hiện tại:', id);
+
       if (!id) {
         router.push('/login');
         return;
@@ -36,6 +38,8 @@ export default function TinCuaToiPage() {
         .select('*')
         .eq('user_id', id)
         .order('created_at', { ascending: false });
+
+      console.log('📦 Posts fetch được:', posts);
 
       setPosts(posts || []);
       setLoading(false);
@@ -55,7 +59,9 @@ export default function TinCuaToiPage() {
         posts.map(post => (
           <div key={post.id} className="border p-4 mb-4 rounded">
             <h2 className="font-semibold">{post.title}</h2>
-            <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+            <p className="text-sm text-gray-500">
+              {new Date(post.created_at).toLocaleString()}
+            </p>
             <p className="mt-2">{post.description}</p>
             {post.image_url && (
               <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
