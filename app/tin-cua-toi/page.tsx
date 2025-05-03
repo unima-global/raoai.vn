@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 interface Post {
   id: string;
@@ -14,27 +15,33 @@ interface Post {
 export default function TinCuaToiPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const fakeUserId = 'demo'; // ← Giả định user chưa login
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('user_id', fakeUserId)
-        .order('created_at', { ascending: false });
+    const fetchSessionAndPosts = async () => {
+      const { data } = await supabase.auth.getSession();
+      const id = data.session?.user?.id || null;
 
-      if (error) {
-        console.error('Lỗi khi tải tin:', error.message);
-      } else {
-        setPosts(data || []);
+      if (!id) {
+        router.push('/login');
+        return;
       }
 
+      setUserId(id);
+
+      const { data: userPosts, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', id)
+        .order('created_at', { ascending: false });
+
+      if (!error) setPosts(userPosts || []);
       setLoading(false);
     };
 
-    fetchPosts();
+    fetchSessionAndPosts();
   }, []);
 
   return (
@@ -43,7 +50,7 @@ export default function TinCuaToiPage() {
         <h1 className="text-2xl font-bold mb-4">📋 Tin của tôi</h1>
 
         {loading ? (
-          <p>⏳ Đang tải...</p>
+          <p>🔄 Đang tải...</p>
         ) : posts.length === 0 ? (
           <p>🙁 Bạn chưa đăng tin nào.</p>
         ) : (
@@ -54,12 +61,12 @@ export default function TinCuaToiPage() {
                   <img
                     src={post.image_url}
                     alt={post.title}
-                    className="mb-3 rounded w-full object-cover max-h-64"
+                    className="mb-3 w-full rounded object-cover max-h-64"
                   />
                 )}
                 <h2 className="text-lg font-semibold">{post.title}</h2>
-                <p className="text-gray-600">{post.description}</p>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-gray-700">{post.description}</p>
+                <p className="text-xs text-gray-500 mt-2">
                   🕒 {new Date(post.created_at).toLocaleString('vi-VN')}
                 </p>
               </li>
