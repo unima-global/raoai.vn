@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '~/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 interface Post {
@@ -20,9 +20,9 @@ export default function TinCuaToiPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchSessionAndPosts = async () => {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user?.id || null;
+    const fetchPosts = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const id = user?.id || null;
 
       if (!id) {
         router.push('/login');
@@ -31,49 +31,38 @@ export default function TinCuaToiPage() {
 
       setUserId(id);
 
-      const { data: userPosts, error } = await supabase
+      const { data: posts } = await supabase
         .from('posts')
         .select('*')
         .eq('user_id', id)
         .order('created_at', { ascending: false });
 
-      if (!error) setPosts(userPosts || []);
+      setPosts(posts || []);
       setLoading(false);
     };
 
-    fetchSessionAndPosts();
+    fetchPosts();
   }, []);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">📋 Tin của tôi</h1>
-
-        {loading ? (
-          <p>🔄 Đang tải...</p>
-        ) : posts.length === 0 ? (
-          <p>🙁 Bạn chưa đăng tin nào.</p>
-        ) : (
-          <ul className="space-y-4">
-            {posts.map((post) => (
-              <li key={post.id} className="bg-white p-4 rounded shadow">
-                {post.image_url && (
-                  <img
-                    src={post.image_url}
-                    alt={post.title}
-                    className="mb-3 w-full rounded object-cover max-h-64"
-                  />
-                )}
-                <h2 className="text-lg font-semibold">{post.title}</h2>
-                <p className="text-gray-700">{post.description}</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  🕒 {new Date(post.created_at).toLocaleString('vi-VN')}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </main>
+    <div className="p-4 max-w-xl mx-auto">
+      <h1 className="text-xl font-bold mb-4">🗂 Tin của tôi</h1>
+      {loading ? (
+        <p>⏳ Đang tải...</p>
+      ) : posts.length === 0 ? (
+        <p>😔 Bạn chưa đăng tin nào.</p>
+      ) : (
+        posts.map(post => (
+          <div key={post.id} className="border p-4 mb-4 rounded">
+            <h2 className="font-semibold">{post.title}</h2>
+            <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+            <p className="mt-2">{post.description}</p>
+            {post.image_url && (
+              <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
+            )}
+          </div>
+        ))
+      )}
+    </div>
   );
 }
