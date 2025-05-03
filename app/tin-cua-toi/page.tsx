@@ -20,18 +20,15 @@ export default function TinCuaToiPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('🚀 useEffect chạy');
-
     const fetchPosts = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const id = user?.id || null;
-      console.log("🧠 user_id hiện tại:", id);
+      const { data: { user }, error } = await supabase.auth.getUser();
 
-      if (!id) {
+      if (error || !user) {
         router.push('/login');
         return;
       }
 
+      const id = user.id;
       setUserId(id);
 
       const { data: posts } = await supabase
@@ -40,7 +37,6 @@ export default function TinCuaToiPage() {
         .eq('user_id', id)
         .order('created_at', { ascending: false });
 
-      console.log("📦 Posts fetch được:", posts);
       setPosts(posts || []);
       setLoading(false);
     };
@@ -59,9 +55,13 @@ export default function TinCuaToiPage() {
         posts.map(post => (
           <div key={post.id} className="border p-4 mb-4 rounded">
             <h2 className="font-semibold">{post.title}</h2>
-            <p className="text-sm text-gray-500">{new Date(post.created_at).toLocaleString()}</p>
+            <p className="text-sm text-gray-500">
+              {new Date(post.created_at).toLocaleString()}
+            </p>
             <p className="mt-2">{post.description}</p>
-            {post.image_url && <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />}
+            {post.image_url && (
+              <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
+            )}
           </div>
         ))
       )}
