@@ -16,8 +16,8 @@ export default function DangTinPage() {
 
   useEffect(() => {
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user?.id || null;
+const { data: { user } } = await supabase.auth.getUser();
+const id = user?.id || null;
       if (!id) {
         router.push('/login');
       } else {
