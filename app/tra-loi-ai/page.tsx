@@ -12,6 +12,8 @@ export default function TraLoiAIPage() {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'vi-VN';
+    utterance.pitch = 1;
+    utterance.rate = 1;
     synth.speak(utterance);
   };
 
@@ -47,22 +49,29 @@ export default function TraLoiAIPage() {
   };
 
   const fetchGPT = async (query: string) => {
+    if (!query) {
+      alert('Bạn chưa nói gì');
+      return;
+    }
+
     const res = await fetch('/api/gpt/goi-y-tieu-de', {
       method: 'POST',
       body: JSON.stringify({ prompt: query }),
     });
+
     const data = await res.json();
     if (data.result) {
       setResponse(data.result);
       speak(data.result);
     } else {
-      setResponse('Không có câu trả lời');
+      setResponse('Không có phản hồi từ AI');
     }
   };
 
   return (
     <div className="p-4 max-w-xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">🎙️ Hỏi RaoAI bằng giọng nói</h1>
+      <h1 className="text-2xl font-bold">🧠 Hỏi AI bằng giọng nói</h1>
+
       <div className="flex space-x-2">
         <input
           className="border p-2 w-full"
@@ -77,16 +86,18 @@ export default function TraLoiAIPage() {
           {isListening ? '🎧...' : '🎧 Mic'}
         </button>
       </div>
+
       <button
         onClick={() => fetchGPT(prompt)}
         className="bg-green-600 text-white px-4 py-2 rounded"
       >
         💬 Gửi cho AI
       </button>
+
       {response && (
         <div className="border p-4 rounded bg-gray-50">
-          <p className="text-gray-700">🤖 AI trả lời:</p>
-          <p className="font-semibold">{response}</p>
+          <p className="text-gray-600 mb-1">🤖 AI trả lời:</p>
+          <p className="font-medium">{response}</p>
         </div>
       )}
     </div>
