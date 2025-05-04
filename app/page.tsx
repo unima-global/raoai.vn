@@ -15,7 +15,7 @@ interface Post {
   image_url: string | null;
   created_at: string;
   user_id: string;
-  user_profiles?: UserProfile;
+  user_profiles?: UserProfile[]; // FIX: vì trả về dạng array
 }
 
 export default function HomePage() {
@@ -119,16 +119,16 @@ export default function HomePage() {
             {post.image_url && (
               <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
             )}
-            {post.user_profiles && (
+            {post.user_profiles?.[0] && (
               <div className="mt-3 flex items-center space-x-2 text-sm text-gray-600">
-                {post.user_profiles.avatar && (
+                {post.user_profiles[0].avatar && (
                   <img
-                    src={post.user_profiles.avatar}
+                    src={post.user_profiles[0].avatar}
                     alt="avatar"
                     className="w-6 h-6 rounded-full"
                   />
                 )}
-                <span>{post.user_profiles.name || 'Người dùng'}</span>
+                <span>{post.user_profiles[0].name || 'Người dùng'}</span>
               </div>
             )}
           </div>
