@@ -58,13 +58,15 @@ export default function HomePage() {
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">📰 Tin mới đăng</h1>
+
       <input
         type="text"
-        placeholder="🔍 Tìm kiếm tiêu đề..."
+        placeholder="🔍 Tìm kiếm theo tiêu đề..."
         className="border p-2 w-full mb-4"
         value={keyword}
         onChange={e => setKeyword(e.target.value)}
       />
+
       {loading ? (
         <p>Đang tải...</p>
       ) : filtered.length === 0 ? (
