@@ -23,7 +23,7 @@ export default function TraLoiAI() {
       return;
     }
 
-    const recognition = new window.webkitSpeechRecognition();
+    const recognition = new (window as any).webkitSpeechRecognition();
     recognition.lang = 'vi-VN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
