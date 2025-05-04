@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 
-export default function TraLoiAIPage() {
+export default function TraLoiAI() {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
   const [isListening, setIsListening] = useState(false);
