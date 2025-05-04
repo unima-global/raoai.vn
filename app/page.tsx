@@ -15,7 +15,7 @@ interface Post {
   image_url: string | null;
   created_at: string;
   user_id: string;
-  user_profiles?: UserProfile[]; // FIX: vì trả về dạng array
+  user_profiles?: UserProfile[];
 }
 
 export default function HomePage() {
