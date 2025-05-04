@@ -9,20 +9,21 @@ export default function HoSoPage() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState('');
+  const [address, setAddress] = useState('');
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
       if (!data) {
-        // chưa có profile → tạo mới
         await supabase.from('user_profiles').insert([{ id: user.id }]);
         setLoading(false);
         return;
@@ -32,6 +33,8 @@ export default function HoSoPage() {
       setName(data.name || '');
       setPhone(data.phone || '');
       setAvatar(data.avatar || '');
+      setAddress(data.address || '');
+      setVerified(data.verified || false);
       setLoading(false);
     };
 
@@ -46,6 +49,8 @@ export default function HoSoPage() {
       name,
       phone,
       avatar,
+      address,
+      verified,
     }).eq('id', user.id);
 
     if (error) {
@@ -79,11 +84,26 @@ export default function HoSoPage() {
           <input
             type="text"
             className="border p-2 w-full"
+            placeholder="Địa chỉ"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+          />
+          <input
+            type="text"
+            className="border p-2 w-full"
             placeholder="Link avatar"
             value={avatar}
             onChange={e => setAvatar(e.target.value)}
           />
-          {avatar && <img src={avatar} className="w-32 h-32 rounded-full" />}
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={verified}
+              onChange={() => setVerified(!verified)}
+            />
+            <span>Xác minh hồ sơ (admin dùng để xác thực)</span>
+          </label>
+          {avatar && <img src={avatar} className="w-24 h-24 rounded-full" />}
           <button
             onClick={handleSave}
             className="bg-green-600 text-white px-4 py-2 rounded"
