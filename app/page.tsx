@@ -19,6 +19,7 @@ interface Post {
 export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState('');
 
   useEffect(() => {
     const fetchAllPosts = async () => {
@@ -38,7 +39,6 @@ export default function HomePage() {
         `)
         .order('created_at', { ascending: false });
 
-      // gộp dữ liệu
       const mapped = (data || []).map(p => ({
         ...p,
         profile: p.user_profiles,
@@ -51,15 +51,26 @@ export default function HomePage() {
     fetchAllPosts();
   }, []);
 
+  const filtered = posts.filter(post =>
+    post.title.toLowerCase().includes(keyword.toLowerCase())
+  );
+
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">📰 Tin mới đăng</h1>
+      <input
+        type="text"
+        placeholder="🔍 Tìm kiếm tiêu đề..."
+        className="border p-2 w-full mb-4"
+        value={keyword}
+        onChange={e => setKeyword(e.target.value)}
+      />
       {loading ? (
         <p>Đang tải...</p>
-      ) : posts.length === 0 ? (
-        <p>Chưa có bài nào.</p>
+      ) : filtered.length === 0 ? (
+        <p>Không tìm thấy bài nào.</p>
       ) : (
-        posts.map(post => (
+        filtered.map(post => (
           <div key={post.id} className="border p-4 mb-4 rounded shadow">
             <h2 className="font-semibold text-lg">{post.title}</h2>
             <p className="text-gray-500 text-sm">
