@@ -22,8 +22,8 @@ export default function DangTinPage() {
       return;
     }
 
-    let image_url = null;
     setUploading(true);
+    let image_url = null;
 
     if (image) {
       const fileExt = image.name.split('.').pop();
@@ -61,6 +61,25 @@ export default function DangTinPage() {
     }
   };
 
+  const handleGoiYTieuDe = async () => {
+    if (!description) {
+      alert('Nhập mô tả trước khi gợi ý');
+      return;
+    }
+
+    const res = await fetch('/api/gpt/goi-y-tieu-de', {
+      method: 'POST',
+      body: JSON.stringify({ prompt: description }),
+    });
+
+    const data = await res.json();
+    if (data.result) {
+      setTitle(data.result);
+    } else {
+      alert('Không nhận được gợi ý');
+    }
+  };
+
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h1 className="text-xl font-bold mb-4">📝 Đăng tin mới</h1>
@@ -80,6 +99,13 @@ export default function DangTinPage() {
           onChange={e => setDescription(e.target.value)}
           required
         />
+        <button
+          type="button"
+          onClick={handleGoiYTieuDe}
+          className="bg-purple-600 text-white px-4 py-1 rounded text-sm"
+        >
+          💡 Gợi ý tiêu đề bằng AI
+        </button>
         <input
           type="file"
           accept="image/*"
