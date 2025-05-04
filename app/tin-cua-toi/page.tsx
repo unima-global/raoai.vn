@@ -50,6 +50,10 @@ export default function TinCuaToiPage() {
     }
   };
 
+  const handleEdit = (id: string) => {
+    router.push(`/sua-tin?id=${id}`);
+  };
+
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h1 className="text-xl font-bold mb-4">🗂 Tin của tôi</h1>
@@ -68,12 +72,20 @@ export default function TinCuaToiPage() {
             {post.image_url && (
               <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
             )}
-            <button
-              onClick={() => handleDelete(post.id)}
-              className="absolute top-2 right-2 text-red-600 hover:underline text-sm"
-            >
-              Xoá
-            </button>
+            <div className="absolute top-2 right-2 space-x-2">
+              <button
+                onClick={() => handleEdit(post.id)}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                ✏️ Sửa
+              </button>
+              <button
+                onClick={() => handleDelete(post.id)}
+                className="text-red-600 hover:underline text-sm"
+              >
+                🗑️ Xoá
+              </button>
+            </div>
           </div>
         ))
       )}
