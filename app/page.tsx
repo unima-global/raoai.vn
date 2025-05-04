@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface Post {
@@ -20,6 +20,8 @@ export default function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
+  const recognitionRef = useRef<any>(null);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     const fetchAllPosts = async () => {
@@ -55,17 +57,56 @@ export default function HomePage() {
     post.title.toLowerCase().includes(keyword.toLowerCase())
   );
 
+  const handleMicClick = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Trình duyệt không hỗ trợ nhận giọng nói');
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setKeyword(transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = () => {
+        alert('Lỗi nhận giọng nói');
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    setIsListening(true);
+    recognitionRef.current.start();
+  };
+
   return (
     <div className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">📰 Tin mới đăng</h1>
 
-      <input
-        type="text"
-        placeholder="🔍 Tìm kiếm theo tiêu đề..."
-        className="border p-2 w-full mb-4"
-        value={keyword}
-        onChange={e => setKeyword(e.target.value)}
-      />
+      <div className="flex mb-4 space-x-2">
+        <input
+          type="text"
+          placeholder="🔍 Gõ hoặc nói để tìm tiêu đề..."
+          className="border p-2 w-full"
+          value={keyword}
+          onChange={e => setKeyword(e.target.value)}
+        />
+        <button
+          onClick={handleMicClick}
+          className="bg-blue-500 text-white px-3 rounded"
+        >
+          {isListening ? '🎙️...' : '🎙️'}
+        </button>
+      </div>
 
       {loading ? (
         <p>Đang tải...</p>
