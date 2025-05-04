@@ -3,6 +3,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
+interface UserProfile {
+  name: string;
+  avatar: string;
+}
+
 interface Post {
   id: string;
   title: string;
@@ -10,10 +15,7 @@ interface Post {
   image_url: string | null;
   created_at: string;
   user_id: string;
-  profile?: {
-    name: string;
-    avatar: string;
-  };
+  user_profiles?: UserProfile;
 }
 
 export default function HomePage() {
@@ -41,12 +43,7 @@ export default function HomePage() {
         `)
         .order('created_at', { ascending: false });
 
-      const mapped = (data || []).map(p => ({
-        ...p,
-        profile: p.user_profiles,
-      }));
-
-      setPosts(mapped);
+      setPosts((data as Post[]) || []);
       setLoading(false);
     };
 
@@ -59,7 +56,7 @@ export default function HomePage() {
 
   const handleMicClick = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('Trình duyệt không hỗ trợ nhận giọng nói');
+      alert('Trình duyệt không hỗ trợ mic');
       return;
     }
 
@@ -68,7 +65,6 @@ export default function HomePage() {
       const recognition = new SpeechRecognition();
       recognition.lang = 'vi-VN';
       recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
@@ -77,7 +73,7 @@ export default function HomePage() {
       };
 
       recognition.onerror = () => {
-        alert('Lỗi nhận giọng nói');
+        alert('Lỗi mic');
         setIsListening(false);
       };
 
@@ -95,7 +91,7 @@ export default function HomePage() {
       <div className="flex mb-4 space-x-2">
         <input
           type="text"
-          placeholder="🔍 Gõ hoặc nói để tìm tiêu đề..."
+          placeholder="🔍 Tìm kiếm tiêu đề..."
           className="border p-2 w-full"
           value={keyword}
           onChange={e => setKeyword(e.target.value)}
@@ -123,16 +119,16 @@ export default function HomePage() {
             {post.image_url && (
               <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
             )}
-            {post.profile && (
+            {post.user_profiles && (
               <div className="mt-3 flex items-center space-x-2 text-sm text-gray-600">
-                {post.profile.avatar && (
+                {post.user_profiles.avatar && (
                   <img
-                    src={post.profile.avatar}
+                    src={post.user_profiles.avatar}
                     alt="avatar"
                     className="w-6 h-6 rounded-full"
                   />
                 )}
-                <span>{post.profile.name || 'Người dùng'}</span>
+                <span>{post.user_profiles.name || 'Người dùng'}</span>
               </div>
             )}
           </div>
