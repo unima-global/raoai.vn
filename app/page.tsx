@@ -9,6 +9,11 @@ interface Post {
   description: string;
   image_url: string | null;
   created_at: string;
+  user_id: string;
+  profile?: {
+    name: string;
+    avatar: string;
+  };
 }
 
 export default function HomePage() {
@@ -19,10 +24,27 @@ export default function HomePage() {
     const fetchAllPosts = async () => {
       const { data } = await supabase
         .from('posts')
-        .select('*')
+        .select(`
+          id,
+          title,
+          description,
+          image_url,
+          created_at,
+          user_id,
+          user_profiles (
+            name,
+            avatar
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      setPosts(data || []);
+      // gộp dữ liệu
+      const mapped = (data || []).map(p => ({
+        ...p,
+        profile: p.user_profiles,
+      }));
+
+      setPosts(mapped);
       setLoading(false);
     };
 
@@ -46,6 +68,18 @@ export default function HomePage() {
             <p className="mt-2">{post.description}</p>
             {post.image_url && (
               <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
+            )}
+            {post.profile && (
+              <div className="mt-3 flex items-center space-x-2 text-sm text-gray-600">
+                {post.profile.avatar && (
+                  <img
+                    src={post.profile.avatar}
+                    alt="avatar"
+                    className="w-6 h-6 rounded-full"
+                  />
+                )}
+                <span>{post.profile.name || 'Người dùng'}</span>
+              </div>
             )}
           </div>
         ))
