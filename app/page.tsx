@@ -1,139 +1,66 @@
-'use client';
+import { createClient } from '@/utils/supabase/server';
+import Link from 'next/link';
 
-import { useEffect, useState, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+export default async function HomePage() {
+  const supabase = createClient();
 
-interface UserProfile {
-  name: string;
-  avatar: string;
-}
-
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  image_url: string | null;
-  created_at: string;
-  user_id: string;
-  user_profiles?: UserProfile[];
-}
-
-export default function HomePage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [keyword, setKeyword] = useState('');
-  const recognitionRef = useRef<any>(null);
-  const [isListening, setIsListening] = useState(false);
-
-  useEffect(() => {
-    const fetchAllPosts = async () => {
-      const { data } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          title,
-          description,
-          image_url,
-          created_at,
-          user_id,
-          user_profiles (
-            name,
-            avatar
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      setPosts((data as Post[]) || []);
-      setLoading(false);
-    };
-
-    fetchAllPosts();
-  }, []);
-
-  const filtered = posts.filter(post =>
-    post.title.toLowerCase().includes(keyword.toLowerCase())
-  );
-
-  const handleMicClick = () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert('Trình duyệt không hỗ trợ mic');
-      return;
-    }
-
-    if (!recognitionRef.current) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN';
-      recognition.interimResults = false;
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setKeyword(transcript);
-        setIsListening(false);
-      };
-
-      recognition.onerror = () => {
-        alert('Lỗi mic');
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-    }
-
-    setIsListening(true);
-    recognitionRef.current.start();
-  };
+  // Lấy danh mục cha
+  const { data: parentCategories } = await supabase
+    .from('categories')
+    .select('*')
+    .is('parent_id', null)
+    .order('name');
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">📰 Tin mới đăng</h1>
-
-      <div className="flex mb-4 space-x-2">
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm tiêu đề..."
-          className="border p-2 w-full"
-          value={keyword}
-          onChange={e => setKeyword(e.target.value)}
-        />
-        <button
-          onClick={handleMicClick}
-          className="bg-blue-500 text-white px-3 rounded"
-        >
-          {isListening ? '🎙️...' : '🎙️'}
-        </button>
+    <main className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Danh mục nổi bật</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {parentCategories?.map((cat) => (
+          <CategoryPreview key={cat.id} category={cat} />
+        ))}
       </div>
+    </main>
+  );
+}
 
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : filtered.length === 0 ? (
-        <p>Không tìm thấy bài nào.</p>
-      ) : (
-        filtered.map(post => (
-          <div key={post.id} className="border p-4 mb-4 rounded shadow">
-            <h2 className="font-semibold text-lg">{post.title}</h2>
-            <p className="text-gray-500 text-sm">
-              {new Date(post.created_at).toLocaleString()}
-            </p>
-            <p className="mt-2">{post.description}</p>
-            {post.image_url && (
-              <img src={post.image_url} alt="ảnh" className="mt-2 rounded" />
-            )}
-            {post.user_profiles?.[0] && (
-              <div className="mt-3 flex items-center space-x-2 text-sm text-gray-600">
-                {post.user_profiles[0].avatar && (
-                  <img
-                    src={post.user_profiles[0].avatar}
-                    alt="avatar"
-                    className="w-6 h-6 rounded-full"
-                  />
-                )}
-                <span>{post.user_profiles[0].name || 'Người dùng'}</span>
-              </div>
-            )}
-          </div>
-        ))
-      )}
+async function CategoryPreview({ category }: { category: any }) {
+  const supabase = createClient();
+
+  // Lấy tin mới nhất trong danh mục con của category cha
+  const { data: subCats } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('parent_id', category.id);
+
+  const subCatIds = subCats?.map((c) => c.id);
+
+  const { data: posts } = await supabase
+    .from('posts')
+    .select('id, title')
+    .in('category_id', subCatIds || [])
+    .order('created_at', { ascending: false })
+    .limit(3);
+
+  return (
+    <div className="border rounded-xl p-4 shadow">
+      <h2 className="text-xl font-semibold mb-2">{category.name}</h2>
+      <ul className="list-disc list-inside text-sm">
+        {posts?.map((post) => (
+          <li key={post.id}>
+            <Link href={`/tin/${post.id}`} className="text-blue-600 hover:underline">
+              {post.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2">
+        <Link
+          href={`/danh-muc/${category.slug}`}
+          className="text-sm text-gray-600 hover:underline"
+        >
+          Xem tất cả tin trong {category.name}
+        </Link>
+      </div>
     </div>
   );
 }

@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       response: completion.choices[0].message.content,
     })
   } catch (err: any) {
-    console.error('❌ GPT error:', err)
-    return NextResponse.json({ error: 'Lỗi khi gọi GPT', detail: err.message || err }, { status: 500 })
+    console.error('GPT ERROR:', err)
+    return NextResponse.json({ error: 'GPT failed', detail: err.message || err }, { status: 500 })
   }
 }
