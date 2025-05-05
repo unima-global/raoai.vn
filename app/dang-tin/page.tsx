@@ -1,9 +1,9 @@
 'use client';
+
 import { useEffect, useState } from 'react';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase-browser';
 
 export default function DangTinPage() {
-  const supabase = createBrowserSupabaseClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -14,7 +14,8 @@ export default function DangTinPage() {
 
   useEffect(() => {
     const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('SESSION:', session, 'ERROR:', error); // debug nếu cần
       setUserId(session?.user?.id || null);
     };
     loadUser();
