@@ -49,7 +49,7 @@ function CategoryCard({ category }: { category: any }) {
 
       const { data: postData } = await supabase
         .from('posts')
-        .select('id, title')
+        .select('id, title, image_url')
         .in('category_id', subCatIds)
         .order('created_at', { ascending: false })
         .limit(4);
@@ -81,12 +81,25 @@ function CategoryCard({ category }: { category: any }) {
         {posts.length === 0 ? (
           <p className="text-sm text-gray-500">Không có tin nào.</p>
         ) : (
-          <ul className="space-y-1 text-sm">
+          <ul className="space-y-2">
             {posts.map((post) => (
-              <li key={post.id}>
-                <Link href={`/tin/${post.id}`} className="text-blue-600 hover:underline">
-                  {post.title}
-                </Link>
+              <li key={post.id} className="flex gap-3">
+                {post.image_url ? (
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="w-16 h-16 object-cover rounded border"
+                  />
+                ) : (
+                  <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                    Không ảnh
+                  </div>
+                )}
+                <div>
+                  <Link href={`/tin/${post.id}`} className="text-blue-600 font-medium hover:underline">
+                    {post.title}
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>
