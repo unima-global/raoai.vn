@@ -1,10 +1,13 @@
 'use client';
 import { useState } from 'react';
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 export default function DangTinPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [field, setField] = useState<'title' | 'description'>('title');
+  const [message, setMessage] = useState('');
+  const supabase = createBrowserSupabaseClient();
 
   function handleVoiceInput() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -16,12 +19,40 @@ export default function DangTinPage() {
       const transcript = e.results[0][0].transcript;
       if (field === 'title') {
         setTitle(transcript);
-        setField('description'); // Chuyển sang nói mô tả
+        setField('description');
       } else {
         setDescription(transcript);
-        setField('title'); // Quay lại tiêu đề nếu muốn nói lại
+        setField('title');
       }
     };
+  }
+
+  async function handleSubmit() {
+    if (!title.trim() || !description.trim()) {
+      setMessage('Vui lòng nhập tiêu đề và mô tả.');
+      return;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { error } = await supabase.from('posts').insert([
+      {
+        title,
+        description,
+        user_id: user?.id || null,
+      },
+    ]);
+
+    if (error) {
+      setMessage('Lỗi khi đăng tin: ' + error.message);
+    } else {
+      setMessage('✅ Đăng tin thành công!');
+      setTitle('');
+      setDescription('');
+      setField('title');
+    }
   }
 
   return (
@@ -55,12 +86,14 @@ export default function DangTinPage() {
         </button>
 
         <button
-          onClick={() => alert('Chức năng lưu sẽ được tích hợp sau')}
+          onClick={handleSubmit}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Đăng tin
         </button>
       </div>
+
+      {message && <p className="mt-4">{message}</p>}
     </main>
   );
 }
