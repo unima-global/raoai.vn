@@ -1,10 +1,10 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
+  experimental: {
+    serverActions: true,
   },
-}
+  // Bắt middleware áp dụng cho các route cần auth
+  matcher: ['/dang-tin', '/tin-cua-toi', '/admin/:path*'],
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
