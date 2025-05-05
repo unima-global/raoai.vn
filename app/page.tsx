@@ -23,7 +23,8 @@ export default function HomePage() {
   }, [search]);
 
   function handleVoiceInput() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition =
+  (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói.');
 
     const recognition = new SpeechRecognition();
