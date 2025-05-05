@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-browser';
-
+import { supabase } from '../../lib/supabase-browser';
 export default function DangTinPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
