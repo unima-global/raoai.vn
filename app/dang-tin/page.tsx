@@ -14,7 +14,6 @@ export default function DangTinPage() {
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     setImages(files);
-
     const urls = files.map((file) => URL.createObjectURL(file));
     setPreviews(urls);
   }
@@ -32,10 +31,37 @@ export default function DangTinPage() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // 1. Tạo bài đăng trước
+    let imageUrl: string | null = null;
+    const uploadedImages: { url: string; name: string }[] = [];
+
+    for (const file of images) {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('images').upload(fileName, file);
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+        const url = urlData?.publicUrl;
+        if (url) {
+          uploadedImages.push({ url, name: fileName });
+        }
+      }
+    }
+
+    if (uploadedImages.length > 0) {
+      imageUrl = uploadedImages[0].url; // lấy ảnh đầu tiên làm ảnh chính
+    }
+
+    // 1. Lưu bài viết
     const { data: postData, error: postError } = await supabase
       .from('posts')
-      .insert([{ title, description, user_id: user?.id || null }])
+      .insert([
+        {
+          title,
+          description,
+          user_id: user?.id || null,
+          image_url: imageUrl,
+        },
+      ])
       .select()
       .single();
 
@@ -45,27 +71,11 @@ export default function DangTinPage() {
       return;
     }
 
-    // 2. Upload ảnh từng cái
-    for (const file of images) {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(fileName, file);
-
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage
-          .from('images')
-          .getPublicUrl(fileName);
-
-        const imageUrl = urlData?.publicUrl;
-
-        // 3. Lưu ảnh vào bảng images
-        if (imageUrl) {
-          await supabase.from('images').insert([
-            { post_id: postData.id, url: imageUrl },
-          ]);
-        }
-      }
+    // 2. Lưu tất cả ảnh vào bảng images
+    for (const img of uploadedImages) {
+      await supabase.from('images').insert([
+        { post_id: postData.id, url: img.url },
+      ]);
     }
 
     setUploading(false);
