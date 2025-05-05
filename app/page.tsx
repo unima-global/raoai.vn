@@ -10,7 +10,6 @@ export default function HomePage() {
   const [posts, setPosts] = useState<any[]>([]);
   const supabase = createBrowserSupabaseClient();
 
-  // Lấy tin đăng mới
   useEffect(() => {
     async function fetchPosts() {
       const { data } = await supabase
@@ -23,16 +22,16 @@ export default function HomePage() {
     fetchPosts();
   }, []);
 
-  // Gửi câu hỏi GPT
-  async function handleSend() {
-    if (!input.trim()) return;
+  async function handleSend(text?: string) {
+    const message = text || input;
+    if (!message.trim()) return;
     setLoading(true);
     setResponse('');
 
     const res = await fetch('/api/ai/tra-loi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: input }),
+      body: JSON.stringify({ question: message }),
     });
 
     const data = await res.json();
@@ -41,7 +40,6 @@ export default function HomePage() {
     setLoading(false);
   }
 
-  // Nhận giọng nói
   function handleVoiceInput() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói.');
@@ -53,11 +51,10 @@ export default function HomePage() {
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
-      handleSend();
+      handleSend(transcript); // Tự động gửi luôn
     };
   }
 
-  // Đọc tiếng Việt
   function speakText(text: string) {
     const synth = window.speechSynthesis;
     const utter = new SpeechSynthesisUtterance(text);
@@ -94,7 +91,7 @@ export default function HomePage() {
           🎤
         </button>
         <button
-          onClick={handleSend}
+          onClick={() => handleSend()}
           className="p-2 px-4 border rounded bg-blue-500 text-white hover:bg-blue-600"
         >
           Gửi
