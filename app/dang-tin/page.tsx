@@ -3,28 +3,20 @@ import { useState } from 'react';
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 export default function DangTinPage() {
+  const supabase = createBrowserSupabaseClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [field, setField] = useState<'title' | 'description'>('title');
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [message, setMessage] = useState('');
-  const supabase = createBrowserSupabaseClient();
+  const [uploading, setUploading] = useState(false);
 
-  function handleVoiceInput() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói.');
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'vi-VN';
-    recognition.start();
-    recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript;
-      if (field === 'title') {
-        setTitle(transcript);
-        setField('description');
-      } else {
-        setDescription(transcript);
-        setField('title');
-      }
-    };
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    setImages(files);
+
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setPreviews(urls);
   }
 
   async function handleSubmit() {
@@ -33,67 +25,112 @@ export default function DangTinPage() {
       return;
     }
 
+    setUploading(true);
+    setMessage('');
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from('posts').insert([
-      {
-        title,
-        description,
-        user_id: user?.id || null,
-      },
-    ]);
+    // 1. Tạo bài đăng trước
+    const { data: postData, error: postError } = await supabase
+      .from('posts')
+      .insert([{ title, description, user_id: user?.id || null }])
+      .select()
+      .single();
 
-    if (error) {
-      setMessage('Lỗi khi đăng tin: ' + error.message);
-    } else {
-      setMessage('✅ Đăng tin thành công!');
-      setTitle('');
-      setDescription('');
-      setField('title');
+    if (postError || !postData) {
+      setMessage('Lỗi khi tạo bài đăng: ' + postError?.message);
+      setUploading(false);
+      return;
     }
+
+    // 2. Upload ảnh từng cái
+    for (const file of images) {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(fileName, file);
+
+      if (!uploadError) {
+        const { data: urlData } = supabase.storage
+          .from('images')
+          .getPublicUrl(fileName);
+
+        const imageUrl = urlData?.publicUrl;
+
+        // 3. Lưu ảnh vào bảng images
+        if (imageUrl) {
+          await supabase.from('images').insert([
+            { post_id: postData.id, url: imageUrl },
+          ]);
+        }
+      }
+    }
+
+    setUploading(false);
+    setMessage('✅ Đăng tin thành công!');
+    setTitle('');
+    setDescription('');
+    setImages([]);
+    setPreviews([]);
   }
 
   return (
-    <main className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Đăng tin bằng giọng nói</h1>
+    <main className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Đăng tin với nhiều ảnh</h1>
 
-      <div className="mb-4 space-y-2">
-        <label className="block font-semibold">Tiêu đề:</label>
+      <div className="grid gap-4">
         <input
           type="text"
+          placeholder="Tiêu đề"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full p-2 border rounded"
         />
 
-        <label className="block font-semibold mt-4">Mô tả:</label>
         <textarea
+          placeholder="Mô tả chi tiết"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           className="w-full p-2 border rounded"
         />
-      </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={handleVoiceInput}
-          className="px-4 py-2 border rounded bg-gray-100 hover:bg-gray-200"
-        >
-          🎤 Nói ({field === 'title' ? 'tiêu đề' : 'mô tả'})
-        </button>
+        <div>
+          <label className="block font-semibold mb-1">Chọn nhiều ảnh:</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full"
+          />
+        </div>
+
+        {previews.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+            {previews.map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`Ảnh ${i + 1}`}
+                className="rounded border object-cover h-32 w-full"
+              />
+            ))}
+          </div>
+        )}
 
         <button
           onClick={handleSubmit}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          disabled={uploading}
+          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
         >
-          Đăng tin
+          {uploading ? 'Đang tải...' : 'Đăng tin'}
         </button>
-      </div>
 
-      {message && <p className="mt-4">{message}</p>}
+        {message && <p className="mt-2 text-green-600">{message}</p>}
+      </div>
     </main>
   );
 }
