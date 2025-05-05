@@ -1,17 +1,13 @@
 import './globals.css';
-import NavBar from './components/NavBar';
-
-export const metadata = {
-  title: 'RaoAI',
-  description: 'Đăng tin rao vặt bằng AI',
-};
+import { SupabaseProvider } from '@/components/SupabaseProvider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
       <body>
-        <NavBar />
-        {children}
+        <SupabaseProvider>
+          {children}
+        </SupabaseProvider>
       </body>
     </html>
   );
