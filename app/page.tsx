@@ -22,19 +22,19 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
+    <main className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Danh mục nổi bật</h1>
 
-      <div className="grid gap-8">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((cat) => (
-          <CategoryGroup key={cat.id} category={cat} />
+          <CategoryCard key={cat.id} category={cat} />
         ))}
       </div>
     </main>
   );
 }
 
-function CategoryGroup({ category }: { category: any }) {
+function CategoryCard({ category }: { category: any }) {
   const supabase = createBrowserSupabaseClient();
   const [posts, setPosts] = useState<any[]>([]);
 
@@ -61,27 +61,37 @@ function CategoryGroup({ category }: { category: any }) {
   }, [category.id]);
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-xl font-semibold">{category.name}</h2>
-        <Link href={`/danh-muc/${category.slug}`} className="text-sm text-blue-600 hover:underline">
-          Xem tất cả →
-        </Link>
-      </div>
-
-      {posts.length === 0 ? (
-        <p className="text-sm text-gray-500">Không có tin nào.</p>
-      ) : (
-        <ul className="space-y-1">
-          {posts.map((post) => (
-            <li key={post.id}>
-              <Link href={`/tin/${post.id}`} className="text-blue-600 hover:underline">
-                {post.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
+    <div className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+      {category.image_url && (
+        <img
+          src={category.image_url}
+          alt={category.name}
+          className="w-full h-40 object-cover"
+        />
       )}
+
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg font-semibold">{category.name}</h2>
+          <Link href={`/danh-muc/${category.slug}`} className="text-sm text-blue-600 hover:underline">
+            Xem tất cả →
+          </Link>
+        </div>
+
+        {posts.length === 0 ? (
+          <p className="text-sm text-gray-500">Không có tin nào.</p>
+        ) : (
+          <ul className="space-y-1 text-sm">
+            {posts.map((post) => (
+              <li key={post.id}>
+                <Link href={`/tin/${post.id}`} className="text-blue-600 hover:underline">
+                  {post.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
