@@ -10,6 +10,11 @@ export default function HomePage() {
   const [posts, setPosts] = useState<any[]>([]);
   const supabase = createBrowserSupabaseClient();
 
+  // Ép trình duyệt preload giọng nói
+  useEffect(() => {
+    speechSynthesis.getVoices();
+  }, []);
+
   useEffect(() => {
     async function fetchPosts() {
       const { data } = await supabase
@@ -63,7 +68,9 @@ export default function HomePage() {
     const loadAndSpeak = () => {
       const voices = synth.getVoices();
       const viVoice = voices.find(
-        (v) => v.lang.toLowerCase().includes('vi') && v.name.toLowerCase().includes('google')
+        (v) =>
+          v.lang.toLowerCase().includes('vi') &&
+          v.name.toLowerCase().includes('google')
       );
       if (viVoice) {
         utter.voice = viVoice;
@@ -71,11 +78,8 @@ export default function HomePage() {
       synth.speak(utter);
     };
 
-    if (synth.getVoices().length === 0) {
-      synth.addEventListener('voiceschanged', loadAndSpeak);
-    } else {
-      loadAndSpeak();
-    }
+    // Chờ một chút để trình duyệt kịp load voices
+    setTimeout(loadAndSpeak, 500);
   }
 
   return (
