@@ -57,16 +57,19 @@ export default function HomePage() {
     };
   }
 
-  // Đọc phản hồi bằng tiếng Việt
+  // Đọc tiếng Việt
   function speakText(text: string) {
     const synth = window.speechSynthesis;
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'vi-VN';
 
-    // Ưu tiên giọng đọc tiếng Việt nếu có
-    const voices = synth.getVoices().filter((v) => v.lang === 'vi-VN');
-    if (voices.length > 0) {
-      utter.voice = voices[0];
+    const voices = synth.getVoices();
+    const viVoice = voices.find((v) =>
+      v.lang.toLowerCase().includes('vi') && v.name.toLowerCase().includes('google')
+    );
+
+    if (viVoice) {
+      utter.voice = viVoice;
     }
 
     synth.speak(utter);
