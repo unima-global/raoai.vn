@@ -28,15 +28,16 @@ export default function DangTinPage() {
     setMessage('');
 
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (!user) {
+    if (!session?.user?.id) {
       setMessage('Bạn cần đăng nhập để đăng tin.');
       setUploading(false);
       return;
     }
+
+    const user_id = session.user.id;
 
     const uploadedImages: string[] = [];
 
@@ -60,7 +61,7 @@ export default function DangTinPage() {
           title,
           description,
           image_url,
-          user_id: user.id, // Đã fix gán đúng user_id
+          user_id,
         },
       ])
       .select()
