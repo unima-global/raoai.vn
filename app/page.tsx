@@ -1,13 +1,29 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 export default function HomePage() {
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
   const supabase = createBrowserSupabaseClient();
 
+  // Lấy tin đăng mới
+  useEffect(() => {
+    async function fetchPosts() {
+      const { data } = await supabase
+        .from('posts')
+        .select('id, title')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      setPosts(data || []);
+    }
+    fetchPosts();
+  }, []);
+
+  // Gửi câu hỏi GPT
   async function handleSend() {
     if (!input.trim()) return;
     setLoading(true);
@@ -25,6 +41,7 @@ export default function HomePage() {
     setLoading(false);
   }
 
+  // Nhận giọng nói
   function handleVoiceInput() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói.');
@@ -40,27 +57,43 @@ export default function HomePage() {
     };
   }
 
+  // Đọc phản hồi bằng tiếng Việt
   function speakText(text: string) {
     const synth = window.speechSynthesis;
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'vi-VN';
+
+    // Ưu tiên giọng đọc tiếng Việt nếu có
+    const voices = synth.getVoices().filter((v) => v.lang === 'vi-VN');
+    if (voices.length > 0) {
+      utter.voice = voices[0];
+    }
+
     synth.speak(utter);
   }
 
   return (
     <main className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Trợ lý AI RaoAI</h1>
+      <h1 className="text-2xl font-bold mb-4">Trợ lý AI + Tin đăng mới</h1>
 
       <div className="mb-4 flex gap-2">
         <input
           type="text"
-          placeholder="Nhập câu hỏi..."
+          placeholder="Nhập hoặc nói câu hỏi..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="w-full p-2 border rounded"
         />
-        <button onClick={handleVoiceInput} className="p-2 border rounded bg-gray-100 hover:bg-gray-200">🎤</button>
-        <button onClick={handleSend} className="p-2 px-4 border rounded bg-blue-500 text-white hover:bg-blue-600">
+        <button
+          onClick={handleVoiceInput}
+          className="p-2 border rounded bg-gray-100 hover:bg-gray-200"
+        >
+          🎤
+        </button>
+        <button
+          onClick={handleSend}
+          className="p-2 px-4 border rounded bg-blue-500 text-white hover:bg-blue-600"
+        >
           Gửi
         </button>
       </div>
@@ -71,6 +104,17 @@ export default function HomePage() {
           <strong>Phản hồi:</strong> {response}
         </div>
       )}
+
+      <h2 className="text-xl font-semibold mt-8 mb-2">Tin đăng mới</h2>
+      <ul className="space-y-2">
+        {posts.map((post) => (
+          <li key={post.id}>
+            <Link href={`/tin/${post.id}`} className="text-blue-600 hover:underline">
+              {post.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
