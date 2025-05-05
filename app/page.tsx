@@ -51,7 +51,7 @@ export default function HomePage() {
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
-      handleSend(transcript); // Tự động gửi luôn
+      handleSend(transcript);
     };
   }
 
@@ -60,16 +60,22 @@ export default function HomePage() {
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = 'vi-VN';
 
-    const voices = synth.getVoices();
-    const viVoice = voices.find((v) =>
-      v.lang.toLowerCase().includes('vi') && v.name.toLowerCase().includes('google')
-    );
+    const loadAndSpeak = () => {
+      const voices = synth.getVoices();
+      const viVoice = voices.find(
+        (v) => v.lang.toLowerCase().includes('vi') && v.name.toLowerCase().includes('google')
+      );
+      if (viVoice) {
+        utter.voice = viVoice;
+      }
+      synth.speak(utter);
+    };
 
-    if (viVoice) {
-      utter.voice = viVoice;
+    if (synth.getVoices().length === 0) {
+      synth.addEventListener('voiceschanged', loadAndSpeak);
+    } else {
+      loadAndSpeak();
     }
-
-    synth.speak(utter);
   }
 
   return (
