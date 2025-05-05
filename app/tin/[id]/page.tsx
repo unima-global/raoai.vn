@@ -1,21 +1,31 @@
-import { createClient } from '@/utils/supabase/server';
+'use client';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
-export default async function TinChiTiet({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+export default function TinChiTiet() {
+  const { id } = useParams();
+  const supabase = createBrowserSupabaseClient();
+  const [tin, setTin] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { data: tin, error } = await supabase
-    .from('posts')
-    .select('id, title, description, created_at')
-    .eq('id', params.id)
-    .single();
+  useEffect(() => {
+    if (!id) return;
+    async function fetchTin() {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('id, title, description, created_at')
+        .eq('id', id)
+        .single();
 
-  if (error || !tin) {
-    return (
-      <main className="p-6 max-w-xl mx-auto">
-        <h1 className="text-xl font-bold text-red-600">Không tìm thấy tin đăng</h1>
-      </main>
-    );
-  }
+      setTin(data || null);
+      setLoading(false);
+    }
+    fetchTin();
+  }, [id]);
+
+  if (loading) return <p className="p-6">Đang tải...</p>;
+  if (!tin) return <p className="p-6 text-red-600">Không tìm thấy tin đăng.</p>;
 
   return (
     <main className="p-6 max-w-xl mx-auto">
