@@ -29,10 +29,16 @@ export default function DangTinPage() {
 
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser();
 
-    let imageUrl: string | null = null;
-    const uploadedImages: { url: string; name: string }[] = [];
+    if (!user) {
+      setMessage('Bạn cần đăng nhập để đăng tin.');
+      setUploading(false);
+      return;
+    }
+
+    const uploadedImages: string[] = [];
 
     for (const file of images) {
       const fileName = `${Date.now()}-${file.name}`;
@@ -41,25 +47,20 @@ export default function DangTinPage() {
       if (!uploadError) {
         const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
         const url = urlData?.publicUrl;
-        if (url) {
-          uploadedImages.push({ url, name: fileName });
-        }
+        if (url) uploadedImages.push(url);
       }
     }
 
-    if (uploadedImages.length > 0) {
-      imageUrl = uploadedImages[0].url; // lấy ảnh đầu tiên làm ảnh chính
-    }
+    const image_url = uploadedImages[0] || null;
 
-    // 1. Lưu bài viết
     const { data: postData, error: postError } = await supabase
       .from('posts')
       .insert([
         {
           title,
           description,
-          user_id: user?.id || null,
-          image_url: imageUrl,
+          image_url,
+          user_id: user.id, // Đã fix gán đúng user_id
         },
       ])
       .select()
@@ -71,11 +72,9 @@ export default function DangTinPage() {
       return;
     }
 
-    // 2. Lưu tất cả ảnh vào bảng images
-    for (const img of uploadedImages) {
-      await supabase.from('images').insert([
-        { post_id: postData.id, url: img.url },
-      ]);
+    // Lưu các ảnh còn lại
+    for (const url of uploadedImages) {
+      await supabase.from('images').insert([{ post_id: postData.id, url }]);
     }
 
     setUploading(false);
