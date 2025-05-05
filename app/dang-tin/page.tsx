@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 export default function DangTinPage() {
@@ -10,6 +10,20 @@ export default function DangTinPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // ✅ Lấy user ID an toàn sau khi session được hydrate
+  useEffect(() => {
+    const getUser = async () => {
+      // đợi Supabase hydrate session xong
+      await new Promise((r) => setTimeout(r, 300));
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -24,20 +38,13 @@ export default function DangTinPage() {
       return;
     }
 
-    setUploading(true);
-    setMessage('');
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.user?.id) {
+    if (!userId) {
       setMessage('Bạn cần đăng nhập để đăng tin.');
-      setUploading(false);
       return;
     }
 
-    const user_id = session.user.id;
+    setUploading(true);
+    setMessage('');
 
     const uploadedImages: string[] = [];
 
@@ -61,7 +68,7 @@ export default function DangTinPage() {
           title,
           description,
           image_url,
-          user_id,
+          user_id: userId,
         },
       ])
       .select()
@@ -73,7 +80,6 @@ export default function DangTinPage() {
       return;
     }
 
-    // Lưu các ảnh còn lại
     for (const url of uploadedImages) {
       await supabase.from('images').insert([{ post_id: postData.id, url }]);
     }
