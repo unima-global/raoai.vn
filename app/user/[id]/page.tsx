@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
+import ChatPopup from '../../../components/ChatPopup'
 
 type Post = {
   id: number
@@ -27,21 +28,28 @@ export default function UserProfile() {
   const [email, setEmail] = useState<string | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
   const [total, setTotal] = useState(0)
+  const [viewerId, setViewerId] = useState<string | null>(null)
+  const [showChat, setShowChat] = useState(false)
 
   const updateFilter = (name: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const paramsNew = new URLSearchParams(searchParams.toString())
     if (value) {
-      params.set(name, value)
+      paramsNew.set(name, value)
     } else {
-      params.delete(name)
+      paramsNew.delete(name)
     }
-    params.set('page', '1')
-    router.push(`/user/${params.get('id') || String(params.get('id'))}?${params.toString()}`)
+    paramsNew.set('page', '1')
+    router.push(`/user/${params.id}?${paramsNew.toString()}`)
   }
 
   useEffect(() => {
     const fetchData = async () => {
       const userId = params.id as string
+
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData.session?.user?.id) {
+        setViewerId(sessionData.session.user.id)
+      }
 
       const { data: userData } = await supabase
         .from('users')
@@ -56,7 +64,6 @@ export default function UserProfile() {
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
         .ilike('title', `%${keyword}%`)
-        .maybeSingle()
 
       if (count !== null) setTotal(count)
 
@@ -87,7 +94,21 @@ export default function UserProfile() {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-2">Hồ sơ người dùng</h1>
-      <p className="text-gray-600 mb-6">Email: {email || 'Không xác định'}</p>
+      <p className="text-gray-600 mb-2">Email: {email || 'Không xác định'}</p>
+
+      {viewerId && viewerId !== params.id && (
+        <>
+          <button
+            onClick={() => setShowChat(true)}
+            className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Nhắn tin
+          </button>
+          {showChat && (
+            <ChatPopup receiverId={params.id as string} onClose={() => setShowChat(false)} />
+          )}
+        </>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
         <input
