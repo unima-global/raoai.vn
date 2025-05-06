@@ -22,9 +22,8 @@ export default function ChiTietTin() {
   const postId = params.id as string
   const [post, setPost] = useState<Post | null>(null)
   const [posterEmail, setPosterEmail] = useState<string | null>(null)
-  const [showChat, setShowChat] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
-  const [isFavorite, setIsFavorite] = useState(false)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -32,13 +31,15 @@ export default function ChiTietTin() {
       const uid = sessionData.session?.user?.id
       if (uid) setUserId(uid)
 
-      const { data: postData, error: postError } = await supabase
+      if (!postId) return
+
+      const { data: postData, error } = await supabase
         .from('posts')
         .select('*')
         .eq('id', postId)
         .single()
 
-      if (postError || !postData) {
+      if (error || !postData) {
         setPost(null)
         return
       }
@@ -52,40 +53,15 @@ export default function ChiTietTin() {
         .single()
 
       if (userData?.email) setPosterEmail(userData.email)
-
-      if (uid) {
-        const { data: favData } = await supabase
-          .from('favorites')
-          .select('*')
-          .eq('user_id', uid)
-          .eq('post_id', postData.id)
-          .single()
-
-        if (favData) setIsFavorite(true)
-      }
     }
 
-    if (postId) {
-      fetchPost()
-    }
+    fetchPost()
   }, [postId])
-
-  const handleFavorite = async () => {
-    if (!userId || !post) return
-
-    if (!isFavorite) {
-      await supabase.from('favorites').insert({
-        user_id: userId,
-        post_id: post.id,
-      })
-      setIsFavorite(true)
-    }
-  }
 
   if (!post) {
     return (
-      <div className="max-w-3xl mx-auto p-4 text-center text-red-600">
-        Bài viết không tồn tại hoặc đã bị xóa.
+      <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
+        ⚠️ Bài viết không tồn tại hoặc đã bị xóa.
       </div>
     )
   }
@@ -108,7 +84,7 @@ export default function ChiTietTin() {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        {post.images && post.images.length > 0 ? (
+        {post.images?.length > 0 ? (
           post.images.map((url, idx) => (
             <img
               key={idx}
@@ -127,20 +103,16 @@ export default function ChiTietTin() {
       <div className="p-4 border rounded bg-gray-50 space-y-2">
         <p className="text-sm text-gray-700">
           Người đăng:{' '}
-          {post.user_id ? (
-            <Link
-              href={`/user/${post.user_id}`}
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              {posterEmail || 'Xem hồ sơ'}
-            </Link>
-          ) : (
-            'Không xác định'
-          )}
+          <Link
+            href={`/user/${post.user_id}`}
+            className="text-blue-600 underline hover:text-blue-800"
+          >
+            {posterEmail || 'Không xác định'}
+          </Link>
         </p>
 
         <button
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           onClick={() => setShowChat(true)}
         >
           Liên hệ người bán
@@ -148,20 +120,6 @@ export default function ChiTietTin() {
 
         {showChat && (
           <ChatPopup receiverId={post.user_id} onClose={() => setShowChat(false)} />
-        )}
-
-        {userId && post.user_id !== userId && (
-          <button
-            onClick={handleFavorite}
-            disabled={isFavorite}
-            className={`px-4 py-2 text-sm rounded ${
-              isFavorite
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-red-500 text-white hover:bg-red-600'
-            }`}
-          >
-            {isFavorite ? '❤️ Đã lưu' : '🤍 Lưu bài'}
-          </button>
         )}
       </div>
     </div>
