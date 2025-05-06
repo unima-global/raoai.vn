@@ -1,18 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import Image from 'next/image'
 
 export default function DangTin() {
-  const supabase = createClientComponentClient()
+  const supabase = createPagesBrowserClient()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [images, setImages] = useState<File[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
 
-  // Lấy session khi load trang
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
