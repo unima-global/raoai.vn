@@ -11,18 +11,16 @@ export default function NavBar() {
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user?.email) {
-        setUserEmail(session.user.email)
-      }
+      setUserEmail(session?.user?.email ?? null)
     }
 
     fetchSession()
 
-    // Nếu có ?code= từ Supabase redirect → ép reload sau khi login
+    // Reload sau khi đăng nhập Google
     if (typeof window !== 'undefined' && window.location.href.includes('?code=')) {
       fetchSession().then(() => {
         setTimeout(() => {
-          window.location.href = '/' // hoặc location.reload()
+          window.location.href = '/'
         }, 500)
       })
     }
@@ -36,11 +34,24 @@ export default function NavBar() {
   return (
     <nav className="flex justify-between items-center px-4 py-2 border-b shadow-sm bg-white">
       <Link href="/" className="text-xl font-bold text-blue-600">RaoAI</Link>
+
       <div className="flex items-center space-x-4">
+        <Link
+          href="/dang-tin"
+          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          + Đăng tin
+        </Link>
+
         {userEmail ? (
           <>
             <span className="text-sm text-gray-700">{userEmail}</span>
-            <button onClick={handleLogout} className="px-3 py-1 bg-red-500 text-white rounded">Đăng xuất</button>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1 bg-red-500 text-white rounded"
+            >
+              Đăng xuất
+            </button>
           </>
         ) : (
           <>
