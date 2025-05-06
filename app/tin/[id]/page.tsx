@@ -1,5 +1,4 @@
 'use client'
-// force build
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -12,7 +11,7 @@ type Post = {
   title: string
   content: string
   image_url: string
-  images: string[]
+  images?: string[] | null
   location?: string
   user_id: string
 }
@@ -61,7 +60,7 @@ export default function ChiTietTin() {
 
   if (!post) {
     return (
-      <div className="max-w-3xl mx-auto p-6 text-center text-red-600">
+      <div className="max-w-3xl mx-auto p-4 text-center text-red-600">
         ⚠️ Bài viết không tồn tại hoặc đã bị xóa.
       </div>
     )
@@ -85,7 +84,7 @@ export default function ChiTietTin() {
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        {post.images?.length > 0 ? (
+        {Array.isArray(post.images) && post.images.length > 0 ? (
           post.images.map((url, idx) => (
             <img
               key={idx}
