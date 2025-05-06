@@ -61,10 +61,14 @@ export default function UserProfile() {
 
       if (userData?.email) setEmail(userData.email)
 
+      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+
       let countQuery = supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
+        .eq('status', 'active')
+        .gte('created_at', cutoff)
 
       if (keyword) countQuery = countQuery.ilike('title', `%${keyword}%`)
       if (category) countQuery = countQuery.eq('category', category)
@@ -77,6 +81,8 @@ export default function UserProfile() {
         .from('posts')
         .select('id, title, image_url, created_at, category, status')
         .eq('user_id', userId)
+        .eq('status', 'active')
+        .gte('created_at', cutoff)
         .order('created_at', { ascending: false })
         .range((page - 1) * perPage, page * perPage - 1)
 
