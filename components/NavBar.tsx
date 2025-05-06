@@ -1,49 +1,54 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 export default function NavBar() {
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const supabase = createPagesBrowserClient()
+  const [userEmail, setUserEmail] = useState<string | null>(null)
 
   useEffect(() => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user?.email) {
+        setUserEmail(session.user.email)
+      }
+    }
 
-    supabase.auth.getSession().then(({ data }) => {
-      const email = data.session?.user?.email || null;
-      setUserEmail(email);
-    });
-  }, []);
+    fetchSession()
+
+    // Nếu có ?code= từ Supabase redirect → ép reload sau khi login
+    if (typeof window !== 'undefined' && window.location.href.includes('?code=')) {
+      fetchSession().then(() => {
+        setTimeout(() => {
+          window.location.href = '/' // hoặc location.reload()
+        }, 500)
+      })
+    }
+  }, [])
 
   const handleLogout = async () => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    await supabase.auth.signOut();
-    window.location.href = '/';
-  };
+    await supabase.auth.signOut()
+    location.reload()
+  }
 
   return (
-    <div className="w-full bg-gray-50 px-6 py-2 text-right text-sm text-gray-700">
-      {userEmail ? (
-        <>
-          👤 {userEmail} |{' '}
-          <button
-            onClick={handleLogout}
-            className="text-blue-600 hover:underline"
-          >
-            Đăng xuất
-          </button>
-        </>
-      ) : (
-        <a href="/login" className="text-blue-600 hover:underline">
-          Đăng nhập
-        </a>
-      )}
-    </div>
-  );
+    <nav className="flex justify-between items-center px-4 py-2 border-b shadow-sm bg-white">
+      <Link href="/" className="text-xl font-bold text-blue-600">RaoAI</Link>
+      <div className="flex items-center space-x-4">
+        {userEmail ? (
+          <>
+            <span className="text-sm text-gray-700">{userEmail}</span>
+            <button onClick={handleLogout} className="px-3 py-1 bg-red-500 text-white rounded">Đăng xuất</button>
+          </>
+        ) : (
+          <>
+            <Link href="/dang-nhap" className="text-blue-600 hover:underline">Đăng nhập</Link>
+            <Link href="/dang-ky" className="text-blue-600 hover:underline">Đăng ký</Link>
+          </>
+        )}
+      </div>
+    </nav>
+  )
 }
