@@ -7,7 +7,7 @@ import Link from 'next/link'
 import ChatPopup from '../../../components/ChatPopup'
 
 type Post = {
-  id: number
+  id: string
   title: string
   content: string
   image_url: string
@@ -22,13 +22,19 @@ export default function ChiTietTin() {
   const [post, setPost] = useState<Post | null>(null)
   const [posterEmail, setPosterEmail] = useState<string | null>(null)
   const [showChat, setShowChat] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const uid = sessionData.session?.user?.id
+      if (uid) setUserId(uid)
+
       const { data: postData } = await supabase
         .from('posts')
         .select('*')
-        .eq('id', Number(params.id))
+        .eq('id', params.id)
         .single()
 
       if (postData) {
@@ -40,8 +46,17 @@ export default function ChiTietTin() {
           .eq('id', postData.user_id)
           .single()
 
-        if (userData?.email) {
-          setPosterEmail(userData.email)
+        if (userData?.email) setPosterEmail(userData.email)
+
+        if (uid) {
+          const { data: favData } = await supabase
+            .from('favorites')
+            .select('*')
+            .eq('user_id', uid)
+            .eq('post_id', postData.id)
+            .single()
+
+          if (favData) setIsFavorite(true)
         }
       }
     }
@@ -50,6 +65,18 @@ export default function ChiTietTin() {
       fetchPost()
     }
   }, [params.id])
+
+  const handleFavorite = async () => {
+    if (!userId || !post) return
+
+    if (!isFavorite) {
+      await supabase.from('favorites').insert({
+        user_id: userId,
+        post_id: post.id,
+      })
+      setIsFavorite(true)
+    }
+  }
 
   if (!post) {
     return (
@@ -93,7 +120,7 @@ export default function ChiTietTin() {
         )}
       </div>
 
-      <div className="p-4 border rounded bg-gray-50">
+      <div className="p-4 border rounded bg-gray-50 space-y-2">
         <p className="text-sm text-gray-700">
           Người đăng:{' '}
           {post.user_id ? (
@@ -109,7 +136,7 @@ export default function ChiTietTin() {
         </p>
 
         <button
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           onClick={() => setShowChat(true)}
         >
           Liên hệ người bán
@@ -117,6 +144,20 @@ export default function ChiTietTin() {
 
         {showChat && (
           <ChatPopup receiverId={post.user_id} onClose={() => setShowChat(false)} />
+        )}
+
+        {userId && post.user_id !== userId && (
+          <button
+            onClick={handleFavorite}
+            disabled={isFavorite}
+            className={`px-4 py-2 text-sm rounded ${
+              isFavorite
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-red-500 text-white hover:bg-red-600'
+            }`}
+          >
+            {isFavorite ? '❤️ Đã lưu' : '🤍 Lưu bài'}
+          </button>
         )}
       </div>
     </div>
