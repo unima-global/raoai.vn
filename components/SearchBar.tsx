@@ -25,7 +25,7 @@ export default function SearchBar() {
     recognition.onend = () => setListening(false)
     recognition.onerror = () => setListening(false)
 
-recognition.onresult = (e: SpeechRecognitionEvent) => {      const text = e.results[0][0].transcript
+recognition.onresult = (e: any) => {
       setQuery(text)
     }
 
