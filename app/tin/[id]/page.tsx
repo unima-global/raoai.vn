@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
-import ChatPopup from '../../components/ChatPopup'
+import ChatPopup from '../../../components/ChatPopup'
 type Post = {
   id: number
   title: string
