@@ -12,6 +12,19 @@ export default function DangTin() {
   const [userId, setUserId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [category, setCategory] = useState('')
+
+  // Gợi ý danh mục đơn giản theo từ khóa
+  const suggestCategory = () => {
+    const text = `${title} ${content}`.toLowerCase()
+    if (text.includes('xe') || text.includes('ô tô') || text.includes('toyota') || text.includes('mazda')) {
+      setCategory('oto')
+    } else if (text.includes('nhà') || text.includes('đất') || text.includes('căn hộ')) {
+      setCategory('nhadat')
+    } else if (text.includes('iphone') || text.includes('samsung') || text.includes('điện thoại')) {
+      setCategory('dienthoai')
+    }
+  }
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -22,6 +35,10 @@ export default function DangTin() {
     }
     fetchSession()
   }, [])
+
+  useEffect(() => {
+    suggestCategory()
+  }, [title, content])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -54,6 +71,7 @@ export default function DangTin() {
       const { error } = await supabase.from('posts').insert({
         title,
         content,
+        category,
         user_id: userId,
         image_url: imageUrls[0] || '',
         images: imageUrls,
@@ -65,6 +83,7 @@ export default function DangTin() {
       setTitle('')
       setContent('')
       setImages([])
+      setCategory('')
     } catch (err: any) {
       setMessage(err.message || 'Có lỗi xảy ra')
     } finally {
@@ -90,6 +109,17 @@ export default function DangTin() {
         value={content}
         onChange={(e) => setContent(e.target.value)}
       />
+
+      <select
+        className="w-full p-2 border mb-2"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      >
+        <option value="">-- Chọn danh mục --</option>
+        <option value="nhadat">Nhà đất</option>
+        <option value="oto">Ô tô</option>
+        <option value="dienthoai">Điện thoại</option>
+      </select>
 
       <input type="file" multiple onChange={handleFileChange} className="mb-2" />
 
