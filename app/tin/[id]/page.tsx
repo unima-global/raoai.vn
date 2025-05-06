@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
+import ChatPopup from '@/components/ChatPopup'
 
 type Post = {
   id: number
@@ -19,6 +20,7 @@ export default function ChiTietTin() {
   const params = useParams()
   const [post, setPost] = useState<Post | null>(null)
   const [posterEmail, setPosterEmail] = useState<string | null>(null)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -31,7 +33,6 @@ export default function ChiTietTin() {
       if (postData) {
         setPost(postData)
 
-        // Lấy email người đăng
         const { data: userData } = await supabase
           .from('users')
           .select('email')
@@ -74,7 +75,6 @@ export default function ChiTietTin() {
         </div>
       )}
 
-      {/* Ảnh */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         {post.images && post.images.length > 0 ? (
           post.images.map((url, idx) => (
@@ -92,17 +92,21 @@ export default function ChiTietTin() {
         )}
       </div>
 
-      {/* Người đăng */}
       <div className="p-4 border rounded bg-gray-50">
         <p className="text-sm text-gray-700">
           Người đăng: {posterEmail || 'Không xác định'}
         </p>
+
         <button
           className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          onClick={() => alert('Chức năng liên hệ sẽ bổ sung sau')}
+          onClick={() => setShowChat(true)}
         >
           Liên hệ người bán
         </button>
+
+        {showChat && (
+          <ChatPopup receiverId={post.user_id} onClose={() => setShowChat(false)} />
+        )}
       </div>
     </div>
   )
