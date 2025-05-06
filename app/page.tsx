@@ -27,7 +27,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase.from('categories').select('*')
+      const { data } = await supabase.from('categories').select('*')
       if (data) setCategories(data)
     }
 
@@ -63,36 +63,38 @@ export default function HomePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center gap-2 mb-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+      <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
         <input
           type="text"
           placeholder="Tìm gì đó..."
-          className="w-full h-10 px-3 border rounded"
+          className="flex-1 h-10 px-3 border rounded w-full"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         />
-        <button
-          onClick={handleVoice}
-          className={`h-10 px-3 rounded ${listening ? 'bg-red-500' : 'bg-gray-300'}`}
-          title="Tìm bằng giọng nói"
-        >
-          🎤
-        </button>
-        <button
-          onClick={handleSearch}
-          className="h-10 bg-blue-600 text-white px-4 rounded hover:bg-blue-700 transition"
-        >
-          Tìm
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleVoice}
+            className={`h-10 px-3 rounded ${listening ? 'bg-red-500' : 'bg-gray-300'}`}
+            title="Tìm bằng giọng nói"
+          >
+            🎤
+          </button>
+          <button
+            onClick={handleSearch}
+            className="h-10 bg-blue-600 text-white px-4 rounded hover:bg-blue-700 transition"
+          >
+            Tìm
+          </button>
+        </div>
       </div>
 
       <h2 className="text-xl font-semibold mb-4">Danh mục nổi bật</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {categories.map((cat) => (
-          <div key={cat.id} className="p-4 border rounded shadow-sm">
-            <h3 className="font-bold text-blue-700">{cat.name}</h3>
+          <div key={cat.id} className="p-4 border rounded shadow-sm bg-white">
+            <h3 className="font-bold text-blue-700 text-sm sm:text-base">{cat.name}</h3>
             <p className="text-sm text-gray-500">Không có tin nào.</p>
             <Link
               href={`/danh-muc/${cat.slug}`}
