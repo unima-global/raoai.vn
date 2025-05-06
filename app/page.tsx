@@ -5,6 +5,13 @@ import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+declare global {
+  interface Window {
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
+  }
+}
+
 type Category = {
   id: number
   name: string
@@ -29,7 +36,10 @@ export default function HomePage() {
 
   const handleVoice = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ voice search!')
+    if (!SpeechRecognition) {
+      alert('Trình duyệt không hỗ trợ tìm kiếm bằng giọng nói!')
+      return
+    }
 
     const recognition = new SpeechRecognition()
     recognition.lang = 'vi-VN'
@@ -38,7 +48,7 @@ export default function HomePage() {
     recognition.onend = () => setListening(false)
     recognition.onerror = () => setListening(false)
 
-    recognition.onresult = (e) => {
+    recognition.onresult = (e: any) => {
       const text = e.results[0][0].transcript
       setQuery(text)
     }
@@ -54,7 +64,7 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      {/* Ô tìm kiếm + micro */}
+      {/* Ô tìm kiếm */}
       <div className="flex items-center space-x-2 mb-6">
         <input
           type="text"
