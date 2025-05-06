@@ -5,6 +5,15 @@ import { useParams } from 'next/navigation'
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import ChatPopup from '../../../components/ChatPopup'
 type Post = {
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
+import Link from 'next/link'
+import ChatPopup from '../../../components/ChatPopup'
+
+type Post = {
   id: number
   title: string
   content: string
@@ -93,7 +102,17 @@ export default function ChiTietTin() {
 
       <div className="p-4 border rounded bg-gray-50">
         <p className="text-sm text-gray-700">
-          Người đăng: {posterEmail || 'Không xác định'}
+          Người đăng:{' '}
+          {post.user_id ? (
+            <Link
+              href={`/user/${post.user_id}`}
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              {posterEmail || 'Xem hồ sơ'}
+            </Link>
+          ) : (
+            'Không xác định'
+          )}
         </p>
 
         <button
