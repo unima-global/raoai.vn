@@ -36,7 +36,7 @@ export default function UserProfile() {
       params.delete(name)
     }
     params.set('page', '1')
-    router.push(`/user/${params.get('id') || params.id}?${params.toString()}`)
+    router.push(`/user/${params.id}?${params.toString()}`)
   }
 
   useEffect(() => {
