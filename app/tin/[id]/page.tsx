@@ -11,22 +11,37 @@ type Post = {
   image_url: string
   images: string[]
   location?: string
+  user_id: string
 }
 
 export default function ChiTietTin() {
   const supabase = createPagesBrowserClient()
   const params = useParams()
   const [post, setPost] = useState<Post | null>(null)
+  const [posterEmail, setPosterEmail] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchPost = async () => {
-      const { data } = await supabase
+      const { data: postData } = await supabase
         .from('posts')
         .select('*')
         .eq('id', Number(params.id))
         .single()
 
-      if (data) setPost(data)
+      if (postData) {
+        setPost(postData)
+
+        // Lấy email người đăng
+        const { data: userData } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', postData.user_id)
+          .single()
+
+        if (userData?.email) {
+          setPosterEmail(userData.email)
+        }
+      }
     }
 
     if (params.id) {
@@ -59,7 +74,8 @@ export default function ChiTietTin() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {/* Ảnh */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         {post.images && post.images.length > 0 ? (
           post.images.map((url, idx) => (
             <img
@@ -74,6 +90,19 @@ export default function ChiTietTin() {
         ) : (
           <p className="text-sm text-gray-400">Không có ảnh</p>
         )}
+      </div>
+
+      {/* Người đăng */}
+      <div className="p-4 border rounded bg-gray-50">
+        <p className="text-sm text-gray-700">
+          Người đăng: {posterEmail || 'Không xác định'}
+        </p>
+        <button
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          onClick={() => alert('Chức năng liên hệ sẽ bổ sung sau')}
+        >
+          Liên hệ người bán
+        </button>
       </div>
     </div>
   )
