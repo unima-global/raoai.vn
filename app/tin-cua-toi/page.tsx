@@ -21,7 +21,7 @@ export default function TinCuaToi() {
       } = await supabase.auth.getSession()
 
       const uid = session?.user?.id
-      setUserId(uid)
+      setUserId(uid ?? null)
 
       if (!uid) return
 
