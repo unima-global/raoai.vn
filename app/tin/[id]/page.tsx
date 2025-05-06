@@ -24,6 +24,9 @@ export default function ChiTietTin() {
   const [showChat, setShowChat] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [showReport, setShowReport] = useState(false)
+  const [reportReason, setReportReason] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -46,7 +49,9 @@ export default function ChiTietTin() {
           .eq('id', postData.user_id)
           .single()
 
-        if (userData?.email) setPosterEmail(userData.email)
+        if (userData?.email) {
+          setPosterEmail(userData.email)
+        }
 
         if (uid) {
           const { data: favData } = await supabase
@@ -76,6 +81,20 @@ export default function ChiTietTin() {
       })
       setIsFavorite(true)
     }
+  }
+
+  const handleSendReport = async () => {
+    if (!userId || !post || !reportReason.trim()) return
+
+    await supabase.from('reports').insert({
+      user_id: userId,
+      post_id: post.id,
+      reason: reportReason.trim(),
+    })
+
+    setShowReport(false)
+    setReportReason('')
+    setReportSent(true)
   }
 
   if (!post) {
@@ -158,6 +177,39 @@ export default function ChiTietTin() {
           >
             {isFavorite ? '❤️ Đã lưu' : '🤍 Lưu bài'}
           </button>
+        )}
+
+        {/* Nút báo vi phạm */}
+        {userId && post.user_id !== userId && (
+          <div>
+            <button
+              onClick={() => setShowReport(!showReport)}
+              className="text-sm text-red-600 underline mt-2"
+            >
+              🚩 Báo vi phạm
+            </button>
+
+            {showReport && (
+              <div className="mt-2 space-y-2">
+                <textarea
+                  placeholder="Nhập lý do báo cáo..."
+                  className="w-full p-2 border rounded"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                />
+                <button
+                  onClick={handleSendReport}
+                  className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 text-sm"
+                >
+                  Gửi báo cáo
+                </button>
+              </div>
+            )}
+
+            {reportSent && (
+              <p className="text-sm text-green-600 mt-2">✅ Đã gửi báo cáo!</p>
+            )}
+          </div>
         )}
       </div>
     </div>
