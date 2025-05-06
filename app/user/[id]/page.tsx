@@ -44,6 +44,17 @@ export default function UserProfile() {
     router.push(`/user/${params.id}?${newParams.toString()}`)
   }
 
+  const setTabStatus = (value: string) => {
+    const p = new URLSearchParams(searchParams.toString())
+    if (value) {
+      p.set('status', value)
+    } else {
+      p.delete('status')
+    }
+    p.set('page', '1')
+    router.push(`/user/${params.id}?${p.toString()}`)
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       const userId = params.id as string
@@ -61,14 +72,10 @@ export default function UserProfile() {
 
       if (userData?.email) setEmail(userData.email)
 
-      const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-
       let countQuery = supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .eq('status', 'active')
-        .gte('created_at', cutoff)
 
       if (keyword) countQuery = countQuery.ilike('title', `%${keyword}%`)
       if (category) countQuery = countQuery.eq('category', category)
@@ -81,8 +88,6 @@ export default function UserProfile() {
         .from('posts')
         .select('id, title, image_url, created_at, category, status')
         .eq('user_id', userId)
-        .eq('status', 'active')
-        .gte('created_at', cutoff)
         .order('created_at', { ascending: false })
         .range((page - 1) * perPage, page * perPage - 1)
 
@@ -118,6 +123,29 @@ export default function UserProfile() {
         </>
       )}
 
+      {/* Tabs trạng thái */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {[
+          { label: 'Tất cả', value: '' },
+          { label: 'Đang hiển thị', value: 'active' },
+          { label: 'Đã bán', value: 'sold' },
+          { label: 'Ẩn', value: 'hidden' }
+        ].map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => setTabStatus(tab.value)}
+            className={`px-4 py-1 rounded border ${
+              status === tab.value
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Bộ lọc từ khóa + danh mục */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
         <input
           type="text"
@@ -137,16 +165,6 @@ export default function UserProfile() {
           <option value="nhadat">Nhà đất</option>
           <option value="oto">Ô tô</option>
           <option value="dienthoai">Điện thoại</option>
-        </select>
-        <select
-          value={status}
-          onChange={(e) => updateFilter('status', e.target.value)}
-          className="p-2 border rounded"
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="active">Đang hiển thị</option>
-          <option value="sold">Đã bán</option>
-          <option value="hidden">Ẩn</option>
         </select>
       </div>
 
