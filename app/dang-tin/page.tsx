@@ -1,129 +1,120 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabase-browser';
-export default function DangTinPage() {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [message, setMessage] = useState('');
-  const [uploading, setUploading] = useState(false);
+import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import Image from 'next/image'
 
+export default function DangTin() {
+  const supabase = createClientComponentClient()
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [images, setImages] = useState<File[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
+  const [message, setMessage] = useState('')
+
+  // Lấy session khi load trang
   useEffect(() => {
-    const loadUser = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log('SESSION:', session, 'ERROR:', error); // debug nếu cần
-      setUserId(session?.user?.id || null);
-    };
-    loadUser();
-  }, []);
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUserId(session.user.id)
+      }
+    }
+    fetchSession()
+  }, [])
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
-    const urls = files.map((file) => URL.createObjectURL(file));
-    setPreviews(urls);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImages(Array.from(e.target.files))
+    }
   }
 
-  async function handleSubmit() {
-    if (!title || !description) {
-      setMessage('Vui lòng nhập đầy đủ thông tin.');
-      return;
-    }
-
+  const handleSubmit = async () => {
     if (!userId) {
-      setMessage('Bạn cần đăng nhập để đăng tin.');
-      return;
+      setMessage('Bạn cần đăng nhập để đăng tin.')
+      return
     }
 
-    setUploading(true);
-    setMessage('');
-
-    const uploadedImages: string[] = [];
-
+    const imageUrls: string[] = []
     for (const file of images) {
-      const fileName = `${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from('images').upload(fileName, file);
-      if (!uploadError) {
-        const { data } = supabase.storage.from('images').getPublicUrl(fileName);
-        const url = data?.publicUrl;
-        if (url) uploadedImages.push(url);
+      const { data, error } = await supabase.storage
+        .from('images')
+        .upload(`public/${Date.now()}-${file.name}`, file)
+
+      if (error) {
+        console.error(error)
+      } else {
+        const url = supabase.storage
+          .from('images')
+          .getPublicUrl(data.path).data.publicUrl
+        imageUrls.push(url)
       }
     }
 
-    const image_url = uploadedImages[0] || null;
+    const { error } = await supabase.from('posts').insert({
+      title,
+      content,
+      user_id: userId,
+      image_url: imageUrls[0] || '',
+      images: imageUrls,
+    })
 
-    const { data: postData, error: postError } = await supabase
-      .from('posts')
-      .insert([{ title, description, image_url, user_id: userId }])
-      .select()
-      .single();
-
-    if (postError || !postData) {
-      setMessage('Lỗi khi tạo bài đăng: ' + postError.message);
-      setUploading(false);
-      return;
+    if (error) {
+      console.error(error)
+      setMessage('Có lỗi xảy ra khi đăng tin.')
+    } else {
+      setMessage('Đăng tin thành công!')
+      setTitle('')
+      setContent('')
+      setImages([])
     }
-
-    for (const url of uploadedImages) {
-      await supabase.from('images').insert([{ post_id: postData.id, url }]);
-    }
-
-    setTitle('');
-    setDescription('');
-    setImages([]);
-    setPreviews([]);
-    setMessage('✅ Đăng tin thành công!');
-    setUploading(false);
   }
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Đăng tin</h1>
+    <div className="max-w-xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Đăng tin</h1>
 
       <input
         type="text"
         placeholder="Tiêu đề"
+        className="w-full p-2 border mb-2"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full p-2 border rounded mb-2"
       />
 
       <textarea
-        placeholder="Mô tả chi tiết"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={4}
-        className="w-full p-2 border rounded mb-2"
+        placeholder="Nội dung chi tiết"
+        className="w-full p-2 border mb-2"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
       />
 
-      <input
-        type="file"
-        multiple
-        accept="image/*"
-        onChange={handleImageChange}
-        className="w-full mb-2"
-      />
+      <input type="file" multiple onChange={handleFileChange} className="mb-2" />
 
-      {previews.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
-          {previews.map((src, i) => (
-            <img key={i} src={src} alt={`Ảnh ${i + 1}`} className="rounded border object-cover h-32 w-full" />
-          ))}
-        </div>
-      )}
+      <div className="flex space-x-2 mb-2">
+        {images.map((file, idx) => (
+          <Image
+            key={idx}
+            src={URL.createObjectURL(file)}
+            alt={`Ảnh ${idx}`}
+            width={100}
+            height={100}
+          />
+        ))}
+      </div>
 
       <button
         onClick={handleSubmit}
-        disabled={uploading}
-        className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 w-full"
+        className="bg-blue-600 text-white px-4 py-2 rounded"
       >
-        {uploading ? 'Đang tải...' : 'Đăng tin'}
+        Đăng tin
       </button>
 
-      {message && <p className="mt-3 text-green-600">{message}</p>}
-    </main>
-  );
+      {message && (
+        <p className={`mt-2 ${message.includes('thành công') ? 'text-green-600' : 'text-red-600'}`}>
+          {message}
+        </p>
+      )}
+    </div>
+  )
 }
