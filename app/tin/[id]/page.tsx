@@ -19,14 +19,12 @@ type Post = {
 export default function ChiTietTin() {
   const supabase = createPagesBrowserClient()
   const params = useParams()
+  const postId = params.id as string
   const [post, setPost] = useState<Post | null>(null)
   const [posterEmail, setPosterEmail] = useState<string | null>(null)
   const [showChat, setShowChat] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [showReport, setShowReport] = useState(false)
-  const [reportReason, setReportReason] = useState('')
-  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -34,42 +32,43 @@ export default function ChiTietTin() {
       const uid = sessionData.session?.user?.id
       if (uid) setUserId(uid)
 
-      const { data: postData } = await supabase
+      const { data: postData, error: postError } = await supabase
         .from('posts')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', postId)
         .single()
 
-      if (postData) {
-        setPost(postData)
+      if (postError || !postData) {
+        setPost(null)
+        return
+      }
 
-        const { data: userData } = await supabase
-          .from('users')
-          .select('email')
-          .eq('id', postData.user_id)
+      setPost(postData)
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('email')
+        .eq('id', postData.user_id)
+        .single()
+
+      if (userData?.email) setPosterEmail(userData.email)
+
+      if (uid) {
+        const { data: favData } = await supabase
+          .from('favorites')
+          .select('*')
+          .eq('user_id', uid)
+          .eq('post_id', postData.id)
           .single()
 
-        if (userData?.email) {
-          setPosterEmail(userData.email)
-        }
-
-        if (uid) {
-          const { data: favData } = await supabase
-            .from('favorites')
-            .select('*')
-            .eq('user_id', uid)
-            .eq('post_id', postData.id)
-            .single()
-
-          if (favData) setIsFavorite(true)
-        }
+        if (favData) setIsFavorite(true)
       }
     }
 
-    if (params.id) {
+    if (postId) {
       fetchPost()
     }
-  }, [params.id])
+  }, [postId])
 
   const handleFavorite = async () => {
     if (!userId || !post) return
@@ -83,24 +82,10 @@ export default function ChiTietTin() {
     }
   }
 
-  const handleSendReport = async () => {
-    if (!userId || !post || !reportReason.trim()) return
-
-    await supabase.from('reports').insert({
-      user_id: userId,
-      post_id: post.id,
-      reason: reportReason.trim(),
-    })
-
-    setShowReport(false)
-    setReportReason('')
-    setReportSent(true)
-  }
-
   if (!post) {
     return (
-      <div className="max-w-3xl mx-auto p-4">
-        <p className="text-gray-500">Đang tải bài viết...</p>
+      <div className="max-w-3xl mx-auto p-4 text-center text-red-600">
+        Bài viết không tồn tại hoặc đã bị xóa.
       </div>
     )
   }
@@ -177,39 +162,6 @@ export default function ChiTietTin() {
           >
             {isFavorite ? '❤️ Đã lưu' : '🤍 Lưu bài'}
           </button>
-        )}
-
-        {/* Nút báo vi phạm */}
-        {userId && post.user_id !== userId && (
-          <div>
-            <button
-              onClick={() => setShowReport(!showReport)}
-              className="text-sm text-red-600 underline mt-2"
-            >
-              🚩 Báo vi phạm
-            </button>
-
-            {showReport && (
-              <div className="mt-2 space-y-2">
-                <textarea
-                  placeholder="Nhập lý do báo cáo..."
-                  className="w-full p-2 border rounded"
-                  value={reportReason}
-                  onChange={(e) => setReportReason(e.target.value)}
-                />
-                <button
-                  onClick={handleSendReport}
-                  className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 text-sm"
-                >
-                  Gửi báo cáo
-                </button>
-              </div>
-            )}
-
-            {reportSent && (
-              <p className="text-sm text-green-600 mt-2">✅ Đã gửi báo cáo!</p>
-            )}
-          </div>
         )}
       </div>
     </div>
