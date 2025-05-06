@@ -12,10 +12,11 @@ export default function DangTin() {
   const [userId, setUserId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
 
+  // Lấy user ID khi load trang
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
+      if (session?.user?.id) {
         setUserId(session.user.id)
       }
     }
@@ -41,13 +42,13 @@ export default function DangTin() {
         .upload(`public/${Date.now()}-${file.name}`, file)
 
       if (error) {
-        console.error(error)
-      } else {
-        const url = supabase.storage
-          .from('images')
-          .getPublicUrl(data.path).data.publicUrl
-        imageUrls.push(url)
+        console.error('Lỗi upload ảnh:', error.message)
+        setMessage(`Lỗi upload ảnh: ${error.message}`)
+        return
       }
+
+      const url = supabase.storage.from('images').getPublicUrl(data.path).data.publicUrl
+      imageUrls.push(url)
     }
 
     const { error } = await supabase.from('posts').insert({
@@ -59,10 +60,10 @@ export default function DangTin() {
     })
 
     if (error) {
-      console.error(error)
-      setMessage('Có lỗi xảy ra khi đăng tin.')
+      console.error('Lỗi Supabase:', error.message)
+      setMessage(`Lỗi: ${error.message}`)
     } else {
-      setMessage('Đăng tin thành công!')
+      setMessage('✅ Đăng tin thành công!')
       setTitle('')
       setContent('')
       setImages([])
@@ -110,7 +111,7 @@ export default function DangTin() {
       </button>
 
       {message && (
-        <p className={`mt-2 ${message.includes('thành công') ? 'text-green-600' : 'text-red-600'}`}>
+        <p className={`mt-2 ${message.includes('✅') ? 'text-green-600' : 'text-red-600'}`}>
           {message}
         </p>
       )}
