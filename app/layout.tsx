@@ -1,14 +1,12 @@
 import './globals.css'
-import SupabaseProvider from '../components/SupabaseProvider'
-import { ReactNode } from 'react'
+import Navbar from '../components/Navbar'
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi">
       <body>
-        <SupabaseProvider>
-          {children}
-        </SupabaseProvider>
+        <Navbar />
+        {children}
       </body>
     </html>
   )
