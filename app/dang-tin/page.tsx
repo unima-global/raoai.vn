@@ -8,16 +8,16 @@ export default function DangTin() {
   const supabase = createPagesBrowserClient()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
+  const [location, setLocation] = useState('')
   const [images, setImages] = useState<File[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [category, setCategory] = useState('')
 
-  // Gợi ý danh mục đơn giản theo từ khóa
   const suggestCategory = () => {
     const text = `${title} ${content}`.toLowerCase()
-    if (text.includes('xe') || text.includes('ô tô') || text.includes('toyota') || text.includes('mazda')) {
+    if (text.includes('xe') || text.includes('ô tô') || text.includes('toyota')) {
       setCategory('oto')
     } else if (text.includes('nhà') || text.includes('đất') || text.includes('căn hộ')) {
       setCategory('nhadat')
@@ -72,6 +72,7 @@ export default function DangTin() {
         title,
         content,
         category,
+        location,
         user_id: userId,
         image_url: imageUrls[0] || '',
         images: imageUrls,
@@ -82,6 +83,7 @@ export default function DangTin() {
       setMessage('✅ Đăng tin thành công!')
       setTitle('')
       setContent('')
+      setLocation('')
       setImages([])
       setCategory('')
     } catch (err: any) {
@@ -108,6 +110,14 @@ export default function DangTin() {
         className="w-full p-2 border mb-2"
         value={content}
         onChange={(e) => setContent(e.target.value)}
+      />
+
+      <input
+        type="text"
+        placeholder="Địa chỉ (ví dụ: 123 Lê Lợi, Q.1, TP.HCM)"
+        className="w-full p-2 border mb-2"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
       />
 
       <select
