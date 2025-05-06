@@ -12,6 +12,7 @@ type Post = {
   image_url: string
   created_at: string
   category?: string
+  status?: string
 }
 
 export default function UserProfile() {
@@ -23,6 +24,7 @@ export default function UserProfile() {
   const page = Number(searchParams.get('page') || '1')
   const keyword = searchParams.get('q')?.toLowerCase() || ''
   const category = searchParams.get('category') || ''
+  const status = searchParams.get('status') || ''
   const perPage = 6
 
   const [email, setEmail] = useState<string | null>(null)
@@ -32,14 +34,14 @@ export default function UserProfile() {
   const [showChat, setShowChat] = useState(false)
 
   const updateFilter = (name: string, value: string) => {
-    const paramsNew = new URLSearchParams(searchParams.toString())
+    const newParams = new URLSearchParams(searchParams.toString())
     if (value) {
-      paramsNew.set(name, value)
+      newParams.set(name, value)
     } else {
-      paramsNew.delete(name)
+      newParams.delete(name)
     }
-    paramsNew.set('page', '1')
-    router.push(`/user/${params.id}?${paramsNew.toString()}`)
+    newParams.set('page', '1')
+    router.push(`/user/${params.id}?${newParams.toString()}`)
   }
 
   useEffect(() => {
@@ -59,35 +61,35 @@ export default function UserProfile() {
 
       if (userData?.email) setEmail(userData.email)
 
-      const { count } = await supabase
+      let countQuery = supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
-        .ilike('title', `%${keyword}%`)
 
+      if (keyword) countQuery = countQuery.ilike('title', `%${keyword}%`)
+      if (category) countQuery = countQuery.eq('category', category)
+      if (status) countQuery = countQuery.eq('status', status)
+
+      const { count } = await countQuery
       if (count !== null) setTotal(count)
 
-      let query = supabase
+      let dataQuery = supabase
         .from('posts')
-        .select('id, title, image_url, created_at, category')
+        .select('id, title, image_url, created_at, category, status')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .range((page - 1) * perPage, page * perPage - 1)
 
-      if (keyword) {
-        query = query.ilike('title', `%${keyword}%`)
-      }
+      if (keyword) dataQuery = dataQuery.ilike('title', `%${keyword}%`)
+      if (category) dataQuery = dataQuery.eq('category', category)
+      if (status) dataQuery = dataQuery.eq('status', status)
 
-      if (category) {
-        query = query.eq('category', category)
-      }
-
-      const { data: postData } = await query
+      const { data: postData } = await dataQuery
       if (postData) setPosts(postData)
     }
 
     fetchData()
-  }, [params.id, page, keyword, category])
+  }, [params.id, page, keyword, category, status])
 
   const totalPages = Math.ceil(total / perPage)
 
@@ -100,7 +102,7 @@ export default function UserProfile() {
         <>
           <button
             onClick={() => setShowChat(true)}
-            className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             Nhắn tin
           </button>
@@ -130,6 +132,16 @@ export default function UserProfile() {
           <option value="oto">Ô tô</option>
           <option value="dienthoai">Điện thoại</option>
         </select>
+        <select
+          value={status}
+          onChange={(e) => updateFilter('status', e.target.value)}
+          className="p-2 border rounded"
+        >
+          <option value="">Tất cả trạng thái</option>
+          <option value="active">Đang hiển thị</option>
+          <option value="sold">Đã bán</option>
+          <option value="hidden">Ẩn</option>
+        </select>
       </div>
 
       {posts.length === 0 ? (
@@ -141,6 +153,13 @@ export default function UserProfile() {
               <h3 className="font-semibold text-sm sm:text-base">{post.title}</h3>
               <p className="text-xs text-gray-500 mt-1">
                 Đăng lúc: {new Date(post.created_at).toLocaleString('vi-VN')}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Trạng thái: {post.status === 'sold'
+                  ? 'Đã bán'
+                  : post.status === 'hidden'
+                  ? 'Ẩn'
+                  : 'Đang hiển thị'}
               </p>
               {post.image_url && (
                 <img
