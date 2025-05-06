@@ -4,11 +4,7 @@ import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import { useState } from 'react'
 
-export default function SupabaseProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function SupabaseProvider({ children }: { children: React.ReactNode }) {
   const [supabaseClient] = useState(() => createPagesBrowserClient())
 
   return (
