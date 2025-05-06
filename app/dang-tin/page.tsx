@@ -11,8 +11,8 @@ export default function DangTin() {
   const [images, setImages] = useState<File[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Lấy user ID khi load trang
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -35,38 +35,40 @@ export default function DangTin() {
       return
     }
 
-    const imageUrls: string[] = []
-    for (const file of images) {
-      const { data, error } = await supabase.storage
-        .from('images')
-        .upload(`public/${Date.now()}-${file.name}`, file)
+    setLoading(true)
+    setMessage('')
 
-      if (error) {
-        console.error('Lỗi upload ảnh:', error.message)
-        setMessage(`Lỗi upload ảnh: ${error.message}`)
-        return
+    try {
+      const imageUrls: string[] = []
+      for (const file of images) {
+        const { data, error } = await supabase.storage
+          .from('images')
+          .upload(`public/${Date.now()}-${file.name}`, file)
+
+        if (error) throw new Error('Lỗi upload ảnh: ' + error.message)
+
+        const url = supabase.storage.from('images').getPublicUrl(data.path).data.publicUrl
+        imageUrls.push(url)
       }
 
-      const url = supabase.storage.from('images').getPublicUrl(data.path).data.publicUrl
-      imageUrls.push(url)
-    }
+      const { error } = await supabase.from('posts').insert({
+        title,
+        content,
+        user_id: userId,
+        image_url: imageUrls[0] || '',
+        images: imageUrls,
+      })
 
-    const { error } = await supabase.from('posts').insert({
-      title,
-      content,
-      user_id: userId,
-      image_url: imageUrls[0] || '',
-      images: imageUrls,
-    })
+      if (error) throw new Error('Lỗi Supabase: ' + error.message)
 
-    if (error) {
-      console.error('Lỗi Supabase:', error.message)
-      setMessage(`Lỗi: ${error.message}`)
-    } else {
       setMessage('✅ Đăng tin thành công!')
       setTitle('')
       setContent('')
       setImages([])
+    } catch (err: any) {
+      setMessage(err.message || 'Có lỗi xảy ra')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -105,9 +107,12 @@ export default function DangTin() {
 
       <button
         onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
+        disabled={loading}
+        className={`px-4 py-2 rounded text-white ${
+          loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+        } transition`}
       >
-        Đăng tin
+        {loading ? 'Đang đăng...' : 'Đăng tin'}
       </button>
 
       {message && (
