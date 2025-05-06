@@ -44,6 +44,18 @@ export default function DanhSachYeuThich() {
     fetchData()
   }, [])
 
+  const handleUnfavorite = async (postId: string) => {
+    if (!userId) return
+
+    await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('post_id', postId)
+
+    setPosts((prev) => prev.filter((p) => p.id !== postId))
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">❤️ Bài viết đã lưu</h1>
@@ -53,7 +65,7 @@ export default function DanhSachYeuThich() {
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {posts.map((post) => (
-            <li key={post.id} className="border rounded p-4 shadow-sm">
+            <li key={post.id} className="border rounded p-4 shadow-sm relative">
               <h3 className="font-semibold text-sm sm:text-base">{post.title}</h3>
               <p className="text-xs text-gray-500 mt-1">
                 Đăng lúc: {new Date(post.created_at).toLocaleString('vi-VN')}
@@ -71,6 +83,13 @@ export default function DanhSachYeuThich() {
               >
                 Xem chi tiết →
               </Link>
+
+              <button
+                onClick={() => handleUnfavorite(post.id)}
+                className="absolute top-2 right-2 text-sm text-red-600 hover:underline"
+              >
+                ❌ Bỏ lưu
+              </button>
             </li>
           ))}
         </ul>
