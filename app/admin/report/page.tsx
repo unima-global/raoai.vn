@@ -8,7 +8,7 @@ interface Report {
   reason: string;
   reporter: string;
   created_at: string;
-  status: 'pending' | 'resolved';
+  status: 'pending' | 'resolved' | 'ignored';
 }
 
 export default function ReportPage() {
@@ -24,15 +24,15 @@ export default function ReportPage() {
       .then(data => setReports(data));
   };
 
-  const handleResolve = async (id: string) => {
+  const updateStatus = async (id: string, status: 'resolved' | 'ignored') => {
     const res = await fetch('/api/reports', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status: 'resolved' })
+      body: JSON.stringify({ id, status })
     });
 
     if (res.ok) {
-      fetchReports(); // Cập nhật lại danh sách sau khi xử lý
+      fetchReports(); // Làm mới dữ liệu
     }
   };
 
@@ -64,18 +64,30 @@ export default function ReportPage() {
               <td className="p-2 border">{r.reporter}</td>
               <td className="p-2 border">{new Date(r.created_at).toLocaleString()}</td>
               <td className="p-2 border">
-                {r.status === 'pending' ? '🕒 Đang chờ' : '✅ Đã xử lý'}
+                {r.status === 'pending'
+                  ? '🕒 Đang chờ'
+                  : r.status === 'resolved'
+                  ? '✅ Đã xử lý'
+                  : '❌ Đã bỏ qua'}
               </td>
-              <td className="p-2 border">
+              <td className="p-2 border space-x-2">
                 {r.status === 'pending' ? (
-                  <button
-                    className="px-2 py-1 bg-green-600 text-white rounded"
-                    onClick={() => handleResolve(r.id)}
-                  >
-                    Xử lý
-                  </button>
+                  <>
+                    <button
+                      className="px-2 py-1 bg-green-600 text-white rounded"
+                      onClick={() => updateStatus(r.id, 'resolved')}
+                    >
+                      Xử lý
+                    </button>
+                    <button
+                      className="px-2 py-1 bg-gray-600 text-white rounded"
+                      onClick={() => updateStatus(r.id, 'ignored')}
+                    >
+                      Bỏ qua
+                    </button>
+                  </>
                 ) : (
-                  <span className="text-gray-500 italic">Đã xử lý</span>
+                  <span className="text-gray-500 italic">Đã cập nhật</span>
                 )}
               </td>
             </tr>
