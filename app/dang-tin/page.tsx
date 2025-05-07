@@ -1,13 +1,11 @@
 'use client'
-import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useState, useEffect } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabase = createClientComponentClient()
 
 export default function PostForm() {
+  const [userId, setUserId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [address, setAddress] = useState('')
@@ -15,8 +13,15 @@ export default function PostForm() {
   const [images, setImages] = useState<FileList | null>(null)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id)
+    })
+  }, [])
+
   const handleSubmit = async () => {
-    if (!title || !description || !category) return alert('Vui lòng điền đầy đủ')
+    if (!userId) return alert('Bạn cần đăng nhập để đăng tin.')
+    if (!title || !description || !category) return alert('Vui lòng điền đầy đủ thông tin.')
 
     setLoading(true)
 
@@ -26,10 +31,9 @@ export default function PostForm() {
       for (let i = 0; i < images.length; i++) {
         const file = images[i]
         const fileName = `${Date.now()}-${file.name}`
-        const { data, error } = await supabase.storage.from('images').upload(fileName, file)
-
-        if (error) {
-          console.error('Upload error:', error.message)
+        const { error: uploadError } = await supabase.storage.from('images').upload(fileName, file)
+        if (uploadError) {
+          alert('Lỗi upload ảnh: ' + uploadError.message)
         } else {
           const url = supabase.storage.from('images').getPublicUrl(fileName).data.publicUrl
           uploadedUrls.push(url)
@@ -40,10 +44,11 @@ export default function PostForm() {
     const { error } = await supabase.from('posts').insert({
       title,
       description,
-      category,
       location: address,
+      category,
       images: uploadedUrls,
       status: 'active',
+      user_id: userId,
       created_at: new Date().toISOString()
     })
 
@@ -53,7 +58,7 @@ export default function PostForm() {
       alert('Đăng tin thành công!')
       window.location.href = '/'
     } else {
-      alert('Có lỗi xảy ra khi đăng tin.')
+      alert('Có lỗi xảy ra khi đăng tin: ' + error.message)
     }
   }
 
