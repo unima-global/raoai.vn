@@ -18,3 +18,23 @@ export async function GET() {
 
   return NextResponse.json(data)
 }
+
+export async function PATCH(req: Request) {
+  const body = await req.json()
+  const { id, status } = body
+
+  if (!id || !status) {
+    return NextResponse.json({ error: 'Thiếu ID hoặc trạng thái.' }, { status: 400 })
+  }
+
+  const { data, error } = await supabase
+    .from('reports')
+    .update({ status })
+    .eq('id', id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ message: 'Cập nhật thành công', data })
+}
