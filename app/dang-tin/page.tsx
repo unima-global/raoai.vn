@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 
@@ -17,16 +17,14 @@ export default function DangTinPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setUserId(data.user.id)
-      }
+      if (data?.user) setUserId(data.user.id)
     })
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!userId) return alert('Bạn cần đăng nhập để đăng tin.')
-    if (!title || !description || !category) return alert('Vui lòng nhập đầy đủ thông tin.')
+    if (!userId) return alert('Bạn phải đăng nhập để đăng tin.')
+    if (!title || !description || !category) return alert('Vui lòng nhập đủ thông tin.')
 
     const uploadedUrls: string[] = []
 
@@ -39,13 +37,13 @@ export default function DangTinPage() {
         const { error: uploadError } = await supabase.storage
           .from('images')
           .upload(fileName, file, {
-            upsert: false,
             cacheControl: '3600',
+            upsert: false,
             contentType: file.type
           })
 
         if (uploadError) {
-          alert('Lỗi upload ảnh: ' + uploadError.message)
+          alert('Lỗi khi upload ảnh: ' + uploadError.message)
           return
         }
 
@@ -54,6 +52,13 @@ export default function DangTinPage() {
           uploadedUrls.push(data.publicUrl)
         }
       }
+    }
+
+    console.log('Ảnh upload xong:', uploadedUrls)
+
+    if (uploadedUrls.length === 0) {
+      alert('Bạn phải tải lên ít nhất 1 ảnh.')
+      return
     }
 
     const { error } = await supabase.from('posts').insert({
