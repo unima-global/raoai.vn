@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Post {
   id: string
@@ -10,6 +11,7 @@ interface Post {
 
 export default function MyPostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/my-posts')
@@ -61,7 +63,7 @@ export default function MyPostsPage() {
                 <td className="p-2 border space-x-2">
                   <button
                     className="px-2 py-1 bg-blue-600 text-white rounded"
-                    onClick={() => alert('Tính năng Sửa sẽ cập nhật sau')}
+                    onClick={() => router.push(`/my-posts/edit/${post.id}`)}
                   >
                     Sửa
                   </button>
