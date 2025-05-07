@@ -1,15 +1,18 @@
 import { NextResponse } from 'next/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 export async function GET(request: Request) {
-  const supabase = createServerComponentClient({ cookies })
   const { searchParams } = new URL(request.url)
   const limit = Number(searchParams.get('limit') || 6)
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, image_url, status, created_at')
+    .select('id, title, image_url, images, status, created_at')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(limit)
