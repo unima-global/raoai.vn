@@ -16,7 +16,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, created_at, status')
+    .select('id, title, created_at, status, image_url, user_id')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -24,5 +24,8 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json({
+    posts: data,
+    user_id: user.id
+  })
 }
