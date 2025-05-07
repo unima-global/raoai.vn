@@ -39,7 +39,7 @@ export default function MyPostList() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     })
-    setPosts(prev => prev.filter(p => p.id !== id))
+setPosts(prev => prev.map(p => p.id === id ? { ...p, status: status as 'active' | 'hidden' | 'sold' } : p))
   }
 
   return (
