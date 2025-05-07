@@ -13,6 +13,7 @@ interface Report {
 
 export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [filter, setFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchReports();
@@ -32,13 +33,33 @@ export default function ReportPage() {
     });
 
     if (res.ok) {
-      fetchReports(); // Làm mới dữ liệu
+      fetchReports();
     }
   };
+
+  const filteredReports = reports.filter((r) => {
+    if (filter === 'all') return true;
+    return r.status === filter;
+  });
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">📣 Báo cáo vi phạm</h1>
+
+      <div className="mb-4">
+        <label className="mr-2 font-semibold">Lọc trạng thái:</label>
+        <select
+          className="border px-2 py-1 rounded"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="all">Tất cả</option>
+          <option value="pending">🕒 Đang chờ</option>
+          <option value="resolved">✅ Đã xử lý</option>
+          <option value="ignored">❌ Bỏ qua</option>
+        </select>
+      </div>
+
       <table className="min-w-full border border-gray-300">
         <thead>
           <tr className="bg-gray-100 text-left">
@@ -52,7 +73,7 @@ export default function ReportPage() {
           </tr>
         </thead>
         <tbody>
-          {reports.map((r, index) => (
+          {filteredReports.map((r, index) => (
             <tr key={r.id} className="border-t">
               <td className="p-2 border">{index + 1}</td>
               <td className="p-2 border">
