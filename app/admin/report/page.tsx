@@ -15,11 +15,26 @@ export default function ReportPage() {
   const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
-    // Gọi API từ Supabase hoặc tạm dùng dữ liệu giả
+    fetchReports();
+  }, []);
+
+  const fetchReports = () => {
     fetch('/api/reports')
       .then(res => res.json())
       .then(data => setReports(data));
-  }, []);
+  };
+
+  const handleResolve = async (id: string) => {
+    const res = await fetch('/api/reports', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status: 'resolved' })
+    });
+
+    if (res.ok) {
+      fetchReports(); // Cập nhật lại danh sách sau khi xử lý
+    }
+  };
 
   return (
     <div className="p-6">
@@ -52,8 +67,16 @@ export default function ReportPage() {
                 {r.status === 'pending' ? '🕒 Đang chờ' : '✅ Đã xử lý'}
               </td>
               <td className="p-2 border">
-                <button className="px-2 py-1 bg-green-500 text-white rounded mr-2">Xử lý</button>
-                <button className="px-2 py-1 bg-gray-400 text-white rounded">Bỏ qua</button>
+                {r.status === 'pending' ? (
+                  <button
+                    className="px-2 py-1 bg-green-600 text-white rounded"
+                    onClick={() => handleResolve(r.id)}
+                  >
+                    Xử lý
+                  </button>
+                ) : (
+                  <span className="text-gray-500 italic">Đã xử lý</span>
+                )}
               </td>
             </tr>
           ))}
