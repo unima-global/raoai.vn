@@ -1,9 +1,17 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+
+declare global {
+  interface Window {
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
+  }
+}
 
 export default function HomePage() {
   const [keyword, setKeyword] = useState('')
+  const [posts, setPosts] = useState<any[]>([])
   const [categories, setCategories] = useState([
     { name: 'Xe cộ', slug: 'xe-co', icon: '🚗' },
     { name: 'Ô tô', slug: 'oto', icon: '🚙' },
@@ -15,6 +23,12 @@ export default function HomePage() {
     { name: 'Dịch vụ', slug: 'dich-vu', icon: '🛠️' },
     { name: 'Thời trang', slug: 'thoi-trang', icon: '👗' },
   ])
+
+  useEffect(() => {
+    fetch('/api/posts?limit=6')
+      .then(res => res.json())
+      .then(data => setPosts(data))
+  }, [])
 
   const handleSearch = () => {
     if (!keyword.trim()) return
@@ -36,7 +50,7 @@ export default function HomePage() {
   return (
     <div>
 
-      {/* 🔍 THANH TÌM KIẾM */}
+      {/* 🔍 TÌM KIẾM */}
       <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-12 px-4 text-center">
         <h1 className="text-3xl font-bold mb-2">TÌM LÀ THẤY – RAO LÀ BÁN</h1>
         <p className="mb-6">Nền tảng rao vặt thông minh thuộc hệ sinh thái UNIMA.AI</p>
@@ -68,7 +82,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* 👉 SLIDER ngang nếu có hơn 8 danh mục */}
+        {/* SLIDER nếu có thêm danh mục */}
         {categories.length > 8 && (
           <div className="overflow-x-auto">
             <div className="flex gap-4 w-max">
@@ -85,26 +99,33 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 🆕 TIN MỚI NHẤT */}
+      {/* 🆕 TIN MỚI NHẤT (THẬT) */}
       <section className="bg-gray-50 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold mb-6">🆕 Tin mới nhất</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div key={n} className="border rounded shadow hover:shadow-lg bg-white">
-                <img src="/no-image.jpg" alt="tin" className="w-full h-48 object-cover rounded-t" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-2">Tiêu đề bài viết {n}</h3>
-                  <p className="text-sm text-gray-500">Mô tả ngắn gọn về tin đăng. Giá, vị trí, tình trạng...</p>
-                  <Link href={`/bai-viet/${n}`} className="text-blue-600 text-sm mt-2 inline-block">Xem chi tiết →</Link>
+
+          {posts.length === 0 ? (
+            <p className="text-gray-500">Chưa có tin nào.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {posts.map((post) => (
+                <div key={post.id} className="border rounded shadow hover:shadow-lg bg-white">
+                  <img src={post.image_url || '/no-image.jpg'} alt={post.title} className="w-full h-48 object-cover rounded-t" />
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-1">{post.title}</h3>
+                    <p className="text-sm text-gray-500 mb-1">
+                      Ngày đăng: {new Date(post.created_at).toLocaleString()}
+                    </p>
+                    <Link href={`/bai-viet/${post.id}`} className="text-blue-600 text-sm">Xem chi tiết →</Link>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* 🌐 GIỚI THIỆU HỆ SINH THÁI */}
+      {/* 🌐 GIỚI THIỆU */}
       <section className="max-w-4xl mx-auto text-center py-14 px-4">
         <h2 className="text-2xl font-bold mb-4">🤖 RaoAI thuộc UNIMA.AI</h2>
         <p className="text-gray-700 mb-4">
