@@ -18,19 +18,26 @@ export default function PostDetailPage() {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
 
+      {/* ẢNH */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         {(post.images || []).slice(0, 10).map((url: string, index: number) => (
           <img key={index} src={url} alt="ảnh bài viết" className="w-full h-40 object-cover rounded" />
         ))}
       </div>
 
-      <p className="mb-4 text-gray-700 whitespace-pre-line">{post.description || post.content}</p>
-
-      <p className="text-sm text-gray-500">Ngày đăng: {new Date(post.created_at).toLocaleString()}</p>
-      <p className="text-sm text-gray-500">Trạng thái: {post.status === 'active' ? '✅ Đang hiển thị' : '❌ Ẩn'}</p>
+      {/* MÔ TẢ + ĐỊA CHỈ */}
+      <p className="mb-4 text-gray-800 whitespace-pre-line">{post.description || '(Không có mô tả)'}</p>
       {post.location && (
-        <p className="text-sm text-gray-500">Khu vực: {post.location}</p>
+        <p className="mb-2 text-gray-600">📍 Địa chỉ: {post.location}</p>
       )}
+
+      {/* TRẠNG THÁI + THỜI GIAN */}
+      <p className="text-sm text-gray-500">
+        Ngày đăng: {new Date(post.created_at).toLocaleString()}
+      </p>
+      <p className="text-sm text-gray-500">
+        Trạng thái: {post.status === 'active' ? '✅ Đang hiển thị' : '❌ Ẩn'}
+      </p>
     </div>
   )
 }
