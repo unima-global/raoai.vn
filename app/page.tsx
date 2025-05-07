@@ -99,7 +99,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 🆕 TIN MỚI NHẤT (THẬT) */}
+      {/* 🆕 TIN MỚI NHẤT */}
       <section className="bg-gray-50 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold mb-6">🆕 Tin mới nhất</h2>
@@ -110,7 +110,11 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {posts.map((post) => (
                 <div key={post.id} className="border rounded shadow hover:shadow-lg bg-white">
-                  <img src={post.image_url || '/no-image.jpg'} alt={post.title} className="w-full h-48 object-cover rounded-t" />
+                  <img
+                    src={post.images?.[0] || '/no-image.jpg'}
+                    alt={post.title}
+                    className="w-full h-48 object-cover rounded-t"
+                  />
                   <div className="p-4">
                     <h3 className="font-semibold mb-1">{post.title}</h3>
                     <p className="text-sm text-gray-500 mb-1">
