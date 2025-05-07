@@ -111,7 +111,7 @@ export default function HomePage() {
               {posts.map((post) => (
                 <div key={post.id} className="border rounded shadow hover:shadow-lg bg-white">
                   <img
-                    src={post.images?.[0] || '/no-image.jpg'}
+                    src={post.images?.length > 0 ? post.images[0] : '/no-image.jpg'}
                     alt={post.title}
                     className="w-full h-48 object-cover rounded-t"
                   />
