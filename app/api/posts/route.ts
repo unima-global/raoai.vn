@@ -13,7 +13,6 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from('posts')
     .select('id, title, images, status, created_at')
-    .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(limit)
 
