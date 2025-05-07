@@ -23,13 +23,21 @@ export default function MyPostList() {
       })
   }, [])
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: 'active' | 'hidden' | 'sold') => {
     await fetch(`/api/posts/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     })
-    setPosts(prev => prev.map(p => p.id === id ? { ...p, status } : p))
+
+    // ⚠️ FIX LỖI: ép kiểu status đúng enum
+    setPosts(prev =>
+      prev.map(p =>
+        p.id === id
+          ? { ...p, status: status as 'active' | 'hidden' | 'sold' }
+          : p
+      )
+    )
   }
 
   const handleDelete = async (id: string) => {
@@ -39,7 +47,7 @@ export default function MyPostList() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
     })
-setPosts(prev => prev.map(p => p.id === id ? { ...p, status: status as 'active' | 'hidden' | 'sold' } : p))
+    setPosts(prev => prev.filter(p => p.id !== id))
   }
 
   return (
@@ -51,24 +59,56 @@ setPosts(prev => prev.map(p => p.id === id ? { ...p, status: status as 'active' 
       ) : (
         posts.map((post) => (
           <div key={post.id} className="border rounded shadow p-4">
-            <img src={post.image_url || '/no-image.jpg'} alt={post.title} className="w-full h-60 object-cover rounded mb-4" />
+            <img
+              src={post.image_url || '/no-image.jpg'}
+              alt={post.title}
+              className="w-full h-60 object-cover rounded mb-4"
+            />
             <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-            <p className="text-sm text-gray-500 mb-2">Ngày đăng: {new Date(post.created_at).toLocaleString()}</p>
+            <p className="text-sm text-gray-500 mb-2">
+              Ngày đăng: {new Date(post.created_at).toLocaleString()}
+            </p>
             <p className="mb-2">
-              Trạng thái: {
-                post.status === 'active' ? '✅ Đang hiển thị' :
-                post.status === 'hidden' ? '🙈 Đang ẩn' :
-                '✔️ Đã bán'
-              }
+              Trạng thái:{' '}
+              {post.status === 'active'
+                ? '✅ Đang hiển thị'
+                : post.status === 'hidden'
+                ? '🙈 Đang ẩn'
+                : '✔️ Đã bán'}
             </p>
 
             {userId === post.user_id && (
               <div className="space-x-2">
-                <button onClick={() => updateStatus(post.id, 'sold')} className="bg-green-600 text-white px-3 py-1 rounded">Đã bán</button>
-                <button onClick={() => updateStatus(post.id, 'hidden')} className="bg-gray-600 text-white px-3 py-1 rounded">Ẩn tin</button>
-                <button onClick={() => updateStatus(post.id, 'active')} className="bg-blue-600 text-white px-3 py-1 rounded">Hiển thị lại</button>
-                <button onClick={() => location.href = `/my-posts/edit/${post.id}`} className="bg-yellow-500 text-white px-3 py-1 rounded">Sửa</button>
-                <button onClick={() => handleDelete(post.id)} className="bg-red-600 text-white px-3 py-1 rounded">Xoá</button>
+                <button
+                  onClick={() => updateStatus(post.id, 'sold')}
+                  className="bg-green-600 text-white px-3 py-1 rounded"
+                >
+                  Đã bán
+                </button>
+                <button
+                  onClick={() => updateStatus(post.id, 'hidden')}
+                  className="bg-gray-600 text-white px-3 py-1 rounded"
+                >
+                  Ẩn tin
+                </button>
+                <button
+                  onClick={() => updateStatus(post.id, 'active')}
+                  className="bg-blue-600 text-white px-3 py-1 rounded"
+                >
+                  Hiển thị lại
+                </button>
+                <button
+                  onClick={() => location.href = `/my-posts/edit/${post.id}`}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded"
+                >
+                  Sửa
+                </button>
+                <button
+                  onClick={() => handleDelete(post.id)}
+                  className="bg-red-600 text-white px-3 py-1 rounded"
+                >
+                  Xoá
+                </button>
               </div>
             )}
           </div>
