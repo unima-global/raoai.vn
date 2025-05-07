@@ -1,42 +1,52 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-const supabase = createClientComponentClient()
+import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
-export default function PostForm() {
-  const [userId, setUserId] = useState<string | null>(null)
+export default function DangTinPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [address, setAddress] = useState('')
+  const [location, setLocation] = useState('')
   const [category, setCategory] = useState('')
-  const [images, setImages] = useState<FileList | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [files, setFiles] = useState<FileList | null>(null)
+  const router = useRouter()
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) setUserId(data.user.id)
-    })
-  }, [])
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-  const handleSubmit = async () => {
-    if (!userId) return alert('Bạn cần đăng nhập để đăng tin.')
-    if (!title || !description || !category) return alert('Vui lòng điền đầy đủ thông tin.')
-
-    setLoading(true)
+    const user = await supabase.auth.getUser()
+    const user_id = user.data.user?.id
+    if (!user_id) {
+      alert('Bạn phải đăng nhập để đăng tin.')
+      return
+    }
 
     const uploadedUrls: string[] = []
 
-    if (images) {
-      for (let i = 0; i < images.length; i++) {
-        const file = images[i]
-        const fileName = `${Date.now()}-${file.name}`
-        const { error: uploadError } = await supabase.storage.from('images').upload(fileName, file)
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        const fileExt = file.name.split('.').pop()
+        const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('images')
+          .upload(uniqueName, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type
+          })
+
         if (uploadError) {
+          console.error(uploadError)
           alert('Lỗi upload ảnh: ' + uploadError.message)
+          return
         } else {
-          const url = supabase.storage.from('images').getPublicUrl(fileName).data.publicUrl
-          uploadedUrls.push(url)
+          const { data } = supabase.storage.from('images').getPublicUrl(uniqueName)
+          if (data?.publicUrl) {
+            uploadedUrls.push(data.publicUrl)
+          }
         }
       }
     }
@@ -44,79 +54,80 @@ export default function PostForm() {
     const { error } = await supabase.from('posts').insert({
       title,
       description,
-      location: address,
+      location,
       category,
-      images: uploadedUrls,
+      user_id,
       status: 'active',
-      user_id: userId,
+      images: uploadedUrls,
       created_at: new Date().toISOString()
     })
 
-    setLoading(false)
-
-    if (!error) {
-      alert('Đăng tin thành công!')
-      window.location.href = '/'
+    if (error) {
+      console.error(error)
+      alert('Có lỗi xảy ra khi đăng tin.')
     } else {
-      alert('Có lỗi xảy ra khi đăng tin: ' + error.message)
+      alert('Đăng tin thành công!')
+      router.push('/')
     }
   }
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Đăng tin</h1>
-
-      <input
-        type="text"
-        placeholder="Tiêu đề"
-        className="w-full border px-3 py-2 mb-3 rounded"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <textarea
-        placeholder="Nội dung chi tiết"
-        className="w-full border px-3 py-2 mb-3 rounded"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Địa chỉ"
-        className="w-full border px-3 py-2 mb-3 rounded"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      />
-      <select
-        className="w-full border px-3 py-2 mb-3 rounded"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        <option value="">-- Chọn danh mục --</option>
-        <option value="nha-dat">Nhà đất</option>
-        <option value="oto">Ô tô</option>
-        <option value="dien-thoai">Điện thoại</option>
-        <option value="xe-may">Xe máy</option>
-        <option value="ban-nha">Bán nhà</option>
-        <option value="dich-vu">Dịch vụ</option>
-        <option value="cho-thue">Cho thuê</option>
-        <option value="thoi-trang">Thời trang</option>
-      </select>
-
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        className="mb-4"
-        onChange={(e) => setImages(e.target.files)}
-      />
-
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        {loading ? 'Đang đăng...' : 'Đăng tin'}
-      </button>
+    <div className="max-w-2xl mx-auto p-4">
+      <h1 className="text-xl font-bold mb-4">Đăng tin</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Tiêu đề"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+        <textarea
+          placeholder="Mô tả"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Địa chỉ"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        >
+          <option value="">Chọn danh mục</option>
+          <option value="ban-nha">Bán nhà</option>
+          <option value="nha-dat">Nhà đất</option>
+          <option value="xe-co">Xe cộ</option>
+          <option value="dien-thoai">Điện thoại</option>
+          <option value="thoi-trang">Thời trang</option>
+          <option value="oto">Ô tô</option>
+          <option value="xe-may">Xe máy</option>
+          <option value="cho-thue">Cho thuê</option>
+          <option value="dich-vu">Dịch vụ</option>
+        </select>
+        <input
+          type="file"
+          multiple
+          onChange={(e) => setFiles(e.target.files)}
+          className="w-full"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Đăng tin
+        </button>
+      </form>
     </div>
   )
 }
