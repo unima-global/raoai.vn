@@ -1,14 +1,30 @@
 import './globals.css'
-import Navbar from '../components/Navbar'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'RaoAI.vn - Tìm là thấy, Rao là bán!',
+  description: 'Nền tảng rao vặt thông minh thuộc hệ sinh thái CHỢ AI',
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="vi">
-      <body>
+      <body className={inter.className}>
         <Navbar />
-        {children}
+        <main className="min-h-screen bg-white">
+          {children}
+        </main>
+        <Footer />
       </body>
     </html>
   )
 }
-// rebuild to fix import Navbar
