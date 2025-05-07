@@ -23,7 +23,7 @@ export async function DELETE(req: Request) {
     .from('posts')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id) // đảm bảo chỉ xoá bài của chính mình
+    .eq('user_id', user.id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

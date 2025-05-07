@@ -17,6 +17,21 @@ export default function MyPostsPage() {
       .then(data => setPosts(data))
   }, [])
 
+  const handleDelete = async (id: string) => {
+    const confirmed = confirm('Bạn có chắc chắn muốn xoá bài viết này không?')
+    if (!confirmed) return
+
+    const res = await fetch('/api/posts/delete', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    })
+
+    if (res.ok) {
+      setPosts(prev => prev.filter(p => p.id !== id))
+    }
+  }
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">🗂️ Tin của tôi</h1>
@@ -44,8 +59,18 @@ export default function MyPostsPage() {
                   {post.status === 'active' ? '✅ Đang hiển thị' : '🕒 Đang ẩn'}
                 </td>
                 <td className="p-2 border space-x-2">
-                  <button className="px-2 py-1 bg-blue-600 text-white rounded">Sửa</button>
-                  <button className="px-2 py-1 bg-red-500 text-white rounded">Xoá</button>
+                  <button
+                    className="px-2 py-1 bg-blue-600 text-white rounded"
+                    onClick={() => alert('Tính năng Sửa sẽ cập nhật sau')}
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    className="px-2 py-1 bg-red-500 text-white rounded"
+                    onClick={() => handleDelete(post.id)}
+                  >
+                    Xoá
+                  </button>
                 </td>
               </tr>
             ))}
