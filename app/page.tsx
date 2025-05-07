@@ -1,110 +1,74 @@
 'use client'
-
-import { useEffect, useState } from 'react'
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-
-declare global {
-  interface Window {
-    SpeechRecognition: any
-    webkitSpeechRecognition: any
-  }
-}
-
-type Category = {
-  id: number
-  name: string
-  slug: string
-}
 
 export default function HomePage() {
-  const supabase = createPagesBrowserClient()
-  const [categories, setCategories] = useState<Category[]>([])
-  const [query, setQuery] = useState('')
-  const [listening, setListening] = useState(false)
-  const router = useRouter()
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const { data } = await supabase.from('categories').select('*')
-      if (data) setCategories(data)
-    }
-
-    fetchCategories()
-  }, [])
-
-  const handleVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) {
-      alert('Trình duyệt không hỗ trợ tìm kiếm bằng giọng nói!')
-      return
-    }
-
-    const recognition = new SpeechRecognition()
-    recognition.lang = 'vi-VN'
-
-    recognition.onstart = () => setListening(true)
-    recognition.onend = () => setListening(false)
-    recognition.onerror = () => setListening(false)
-
-    recognition.onresult = (e: any) => {
-      const text = e.results[0][0].transcript
-      setQuery(text)
-    }
-
-    recognition.start()
-  }
-
-  const handleSearch = () => {
-    if (query.trim()) {
-      router.push(`/tim-kiem?q=${encodeURIComponent(query.trim())}`)
-    }
-  }
-
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
-      <div className="flex flex-col sm:flex-row items-center gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="Tìm gì đó..."
-          className="flex-1 h-10 px-3 border rounded w-full"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleVoice}
-            className={`h-10 px-3 rounded ${listening ? 'bg-red-500' : 'bg-gray-300'}`}
-            title="Tìm bằng giọng nói"
-          >
-            🎤
-          </button>
-          <button
-            onClick={handleSearch}
-            className="h-10 bg-blue-600 text-white px-4 rounded hover:bg-blue-700 transition"
-          >
-            Tìm
-          </button>
-        </div>
-      </div>
+    <div>
 
-      <h2 className="text-xl font-semibold mb-4">Danh mục nổi bật</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {categories.map((cat) => (
-          <div key={cat.id} className="p-4 border rounded shadow-sm bg-white">
-            <h3 className="font-bold text-blue-700 text-sm sm:text-base">{cat.name}</h3>
-            <p className="text-sm text-gray-500">Không có tin nào.</p>
-            <Link
-              href={`/danh-muc/${cat.slug}`}
-              className="text-blue-600 text-sm mt-2 inline-block"
-            >
-              Xem tất cả →
+      {/* 🌟 BANNER */}
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-6 text-center">
+        <h1 className="text-4xl font-bold mb-4">TÌM LÀ THẤY – RAO LÀ BÁN</h1>
+        <p className="text-lg mb-6">Đăng tin rao vặt miễn phí – hỗ trợ AI phân loại, tìm kiếm thông minh.</p>
+        <Link href="/dang-tin">
+          <button className="bg-white text-blue-700 font-semibold px-6 py-3 rounded shadow hover:bg-gray-100">
+            + Đăng tin ngay
+          </button>
+        </Link>
+      </section>
+
+      {/* 📂 DANH MỤC NỔI BẬT */}
+      <section className="max-w-6xl mx-auto px-4 py-10">
+        <h2 className="text-2xl font-bold mb-6">📂 Danh mục nổi bật</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          {[
+            { name: 'Xe cộ', slug: 'xe-co', icon: '🚗' },
+            { name: 'Ô tô', slug: 'oto', icon: '🚙' },
+            { name: 'Xe máy', slug: 'xe-may', icon: '🏍️' },
+            { name: 'Nhà đất', slug: 'nha-dat', icon: '🏠' },
+            { name: 'Cho thuê', slug: 'cho-thue', icon: '📦' },
+            { name: 'Bán nhà', slug: 'ban-nha', icon: '🏘️' },
+          ].map((item) => (
+            <Link key={item.slug} href={`/danh-muc/${item.slug}`}>
+              <div className="border rounded p-4 hover:shadow text-center">
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <div className="font-semibold">{item.name}</div>
+              </div>
             </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* 🆕 TIN MỚI NHẤT */}
+      <section className="bg-gray-50 py-10 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6">🆕 Tin mới nhất</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Placeholder bài viết - sẽ dùng fetch API sau */}
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="border rounded shadow hover:shadow-lg">
+                <img src="/no-image.jpg" alt="tin" className="w-full h-48 object-cover rounded-t" />
+                <div className="p-4">
+                  <h3 className="font-semibold mb-2">Tiêu đề bài viết {n}</h3>
+                  <p className="text-sm text-gray-500">Mô tả ngắn gọn về tin đăng. Giá, vị trí, tình trạng...</p>
+                  <Link href={`/bai-viet/${n}`} className="text-blue-600 text-sm mt-2 inline-block">Xem chi tiết →</Link>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
+
+      {/* 🔍 GIỚI THIỆU RAOAI */}
+      <section className="max-w-5xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-bold mb-4">🤖 RaoAI là gì?</h2>
+        <p className="text-lg text-gray-700 mb-6">
+          RaoAI.vn là nền tảng rao vặt thông minh tích hợp AI: giúp phân tích nội dung, gợi ý nhóm đúng, tìm kiếm bằng giọng nói, và nhiều tính năng khác từ hệ sinh thái Globexa.
+        </p>
+        <p className="text-gray-600">
+          Chúng tôi kết nối hàng triệu người dùng, hỗ trợ doanh nghiệp, cá nhân dễ dàng đăng tin, quản lý và giao dịch một cách hiệu quả.
+        </p>
+      </section>
+
     </div>
   )
 }
