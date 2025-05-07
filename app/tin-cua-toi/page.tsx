@@ -30,7 +30,6 @@ export default function MyPostList() {
       body: JSON.stringify({ status })
     })
 
-    // ⚠️ FIX LỖI: ép kiểu status đúng enum
     setPosts(prev =>
       prev.map(p =>
         p.id === id
@@ -59,11 +58,13 @@ export default function MyPostList() {
       ) : (
         posts.map((post) => (
           <div key={post.id} className="border rounded shadow p-4">
-            <img
-              src={post.image_url || '/no-image.jpg'}
-              alt={post.title}
-              className="w-full h-60 object-cover rounded mb-4"
-            />
+            <div className="w-full aspect-video overflow-hidden rounded mb-4">
+              <img
+                src={post.image_url || '/no-image.jpg'}
+                alt={post.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
             <p className="text-sm text-gray-500 mb-2">
               Ngày đăng: {new Date(post.created_at).toLocaleString()}
