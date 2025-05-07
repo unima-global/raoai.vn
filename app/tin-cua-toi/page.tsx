@@ -51,13 +51,13 @@ export default function MyPostList() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📋 Danh sách tin của tôi</h1>
+      <h1 className="text-2xl font-bold text-center">📋 Danh sách tin của tôi</h1>
 
       {posts.length === 0 ? (
-        <p className="text-gray-500">Bạn chưa đăng tin nào.</p>
+        <p className="text-gray-500 text-center">Bạn chưa đăng tin nào.</p>
       ) : (
         posts.map((post) => (
-          <div key={post.id} className="border rounded shadow p-4">
+          <div key={post.id} className="max-w-3xl mx-auto border rounded shadow p-4">
             <div className="w-full aspect-video overflow-hidden rounded mb-4">
               <img
                 src={post.image_url || '/no-image.jpg'}
