@@ -12,7 +12,7 @@ declare global {
 export default function HomePage() {
   const [keyword, setKeyword] = useState('')
   const [posts, setPosts] = useState<any[]>([])
-  const [categories, setCategories] = useState([
+  const [categories] = useState([
     { name: 'Xe cộ', slug: 'xe-co', icon: '🚗' },
     { name: 'Ô tô', slug: 'oto', icon: '🚙' },
     { name: 'Xe máy', slug: 'xe-may', icon: '🏍️' },
@@ -37,7 +37,7 @@ export default function HomePage() {
 
   const handleVoice = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ tìm bằng giọng nói!')
+    if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói!')
     const recognition = new SpeechRecognition()
     recognition.lang = 'vi-VN'
     recognition.onresult = (e: any) => {
@@ -82,7 +82,6 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* SLIDER nếu có thêm danh mục */}
         {categories.length > 8 && (
           <div className="overflow-x-auto">
             <div className="flex gap-4 w-max">
