@@ -1,35 +1,24 @@
-import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-// Kết nối Supabase bằng env
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Chú ý: cần có quyền truy vấn theo user_id
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function GET(req: Request) {
-  // Lấy token từ cookie (nếu dùng auth)
-  const accessToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+export async function GET() {
+  const cookieStore = cookies();
+  const userId = cookieStore.get('user_id')?.value;
 
-  if (!accessToken) {
+  if (!userId) {
     return NextResponse.json([], { status: 401 });
   }
 
-  // Lấy thông tin user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser(accessToken);
-
-  if (userError || !user) {
-    return NextResponse.json([], { status: 401 });
-  }
-
-  // Lấy bài viết theo user
   const { data, error } = await supabase
     .from('posts')
     .select('id, title, image, created_at, status')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
