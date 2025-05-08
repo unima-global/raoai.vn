@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Mic } from 'lucide-react';
 
 export default function HomePage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -18,28 +19,39 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Banner */}
+      {/* Banner + Tìm kiếm */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded shadow mb-8 text-center">
         <h1 className="text-2xl font-bold mb-2">TÌM LÀ THẤY – RAO LÀ BÁN</h1>
         <p className="mb-4">Nền tảng rao vặt thông minh thuộc hệ sinh thái UNIMA.AI</p>
-        <input
-          type="text"
-          placeholder="Tìm gì đó..."
-          className="rounded px-4 py-2 text-black w-2/3 max-w-md"
-        />
-        <button className="ml-2 px-4 py-2 bg-white text-blue-600 rounded font-semibold">
-          Tìm
-        </button>
+
+        {/* Khung tìm kiếm có micro */}
+        <div className="flex justify-center items-center gap-2 max-w-md mx-auto">
+          <input
+            type="text"
+            placeholder="Tìm gì đó..."
+            className="rounded px-4 py-2 text-black w-full"
+          />
+          <button className="bg-white p-2 rounded text-blue-600 hover:bg-gray-100">
+            <Mic size={20} />
+          </button>
+          <button className="px-4 py-2 bg-white text-blue-600 rounded font-semibold hover:bg-gray-100">
+            Tìm
+          </button>
+        </div>
       </div>
 
-      {/* Danh mục nổi bật */}
+      {/* Danh mục nổi bật (slider ngang) */}
       <div className="mb-10">
         <h2 className="text-xl font-bold mb-4">📁 Danh mục nổi bật</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          {['Xe cộ', 'Ô tô', 'Xe máy', 'Nhà đất', 'Cho thuê', 'Bán nhà', 'Điện thoại', 'Dịch vụ'].map((item, idx) => (
+
+        <div className="flex overflow-x-auto gap-3 scroll-smooth no-scrollbar pb-2">
+          {[
+            'Xe cộ', 'Ô tô', 'Xe máy', 'Nhà đất', 'Cho thuê', 'Bán nhà',
+            'Điện thoại', 'Dịch vụ', 'Đồ điện', 'Nội thất', 'Thời trang', 'Công nghệ'
+          ].map((item, idx) => (
             <div
               key={idx}
-              className="bg-white p-4 rounded border shadow hover:shadow-md cursor-pointer"
+              className="min-w-[120px] text-center p-3 bg-white rounded border shadow hover:shadow-md cursor-pointer whitespace-nowrap"
             >
               {item}
             </div>
