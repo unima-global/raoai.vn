@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 interface Post {
   id: string
   title: string
-  images: string[]
+  image_url?: string
+  images?: string[]
   status: 'active' | 'hidden' | 'sold'
   created_at: string
   user_id: string
@@ -34,7 +35,7 @@ export default function MyPostList() {
           <div key={post.id} className="max-w-3xl mx-auto border rounded shadow p-4">
             <div className="w-full aspect-video overflow-hidden rounded mb-4">
               <img
-                src={post.images?.[0] || '/no-image.jpg'}
+                src={post.images?.[0] || post.image_url || '/no-image.jpg'}
                 alt={post.title}
                 className="w-full h-full object-cover"
               />
