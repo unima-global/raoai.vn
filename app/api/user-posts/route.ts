@@ -7,8 +7,7 @@ const supabase = createClient(
 );
 
 export async function GET() {
-  // ✅ Gắn đúng user_id từ Supabase table "posts"
-  const userId = 'YOUR_REAL_USER_ID_HERE'; // ← Thay chuỗi này bằng ID thật
+  const userId = '4a23ed76-931f-4c55-9d22-e45b3fcd5c25';
 
   const { data, error } = await supabase
     .from('posts')
@@ -17,7 +16,7 @@ export async function GET() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('🔴 Supabase query error:', error.message);
+    console.error('Lỗi Supabase:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
