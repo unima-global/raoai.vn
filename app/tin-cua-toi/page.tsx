@@ -1,59 +1,67 @@
-'use client'
-import { useEffect, useState } from 'react'
+'use client';
 
-interface Post {
-  id: string
-  title: string
-  image_url?: string
-  images?: string[]
-  status: 'active' | 'hidden' | 'sold'
-  created_at: string
-  user_id: string
-}
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
-export default function MyPostList() {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [userId, setUserId] = useState<string | null>(null)
+export default function TinCuaToi() {
+  const [posts, setPosts] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/my-posts')
+    fetch('/api/user-posts')
       .then(res => res.json())
-      .then(data => {
-        setPosts(data.posts || [])
-        setUserId(data.user_id || null)
-      })
-  }, [])
+      .then(data => setPosts(data))
+      .catch(err => console.error('Lỗi khi tải tin:', err));
+  }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📋 Danh sách tin của tôi</h1>
+    <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-2xl font-bold text-blue-700 mb-4">Tin của tôi</h1>
 
-      {posts.length === 0 ? (
-        <p className="text-gray-500">Bạn chưa đăng tin nào.</p>
-      ) : (
-        posts.map((post) => (
-          <div key={post.id} className="max-w-3xl mx-auto border rounded shadow p-4">
-            <div className="w-full aspect-video overflow-hidden rounded mb-4">
-              <img
-                src={post.images?.[0] || post.image_url || '/no-image.jpg'}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-            <p className="text-sm text-gray-500 mb-2">
-              Ngày đăng: {new Date(post.created_at).toLocaleString()}
-            </p>
-            <p className="mb-2">
-              Trạng thái: {post.status === 'active'
-                ? '✅ Đang hiển thị'
-                : post.status === 'hidden'
-                ? '🙈 Đang ẩn'
-                : '✔️ Đã bán'}
-            </p>
-          </div>
-        ))
+      {posts.length === 0 && (
+        <p className="text-gray-600">Bạn chưa đăng tin nào.</p>
       )}
+
+      {posts.map(post => (
+        <div
+          key={post.id}
+          className="mb-6 border rounded shadow-sm p-4 bg-white"
+        >
+          {post.image && (
+            <Image
+              src={post.image}
+              alt={post.title}
+              width={800}
+              height={450}
+              className="rounded mb-3"
+            />
+          )}
+
+          <h2 className="text-xl font-semibold text-gray-800">
+            {post.title}
+          </h2>
+
+          <p className="text-sm text-gray-500">
+            Ngày đăng: {new Date(post.created_at).toLocaleString()}
+          </p>
+
+          <p className="mt-1">
+            Trạng thái:{' '}
+            {post.status === 'active' ? (
+              <span className="text-green-600 font-medium">✅ Đang hiển thị</span>
+            ) : (
+              <span className="text-gray-500">Ẩn</span>
+            )}
+          </p>
+
+          {/* Nút xem chi tiết */}
+          <a
+            href={`/bai-viet/${post.id}`}
+            className="inline-block mt-3 px-4 py-1 text-white bg-blue-600 rounded hover:bg-blue-700"
+          >
+            Xem chi tiết
+          </a>
+        </div>
+      ))}
     </div>
-  )
+  );
 }
