@@ -1,3 +1,4 @@
+// Force rebuild 2025-05-08
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
