@@ -43,13 +43,18 @@ export default function BaiVietChiTiet() {
       )}
 
       {/* Địa chỉ */}
-      {post.location_text && (
-        <p className="text-gray-600 font-medium">
-          <strong>Địa chỉ:</strong> {post.location_text}
+      {post.location && (
+        <p className="text-gray-600 font-medium mb-2">
+          <strong>Địa chỉ:</strong> {post.location}
         </p>
       )}
 
-      {/* Bản đồ sẽ thêm sau nếu có lat/lng */}
+      {/* Liên hệ */}
+      {post.contact && (
+        <p className="text-gray-700 font-medium">
+          <strong>Liên hệ:</strong> {post.contact}
+        </p>
+      )}
     </div>
   );
 }
