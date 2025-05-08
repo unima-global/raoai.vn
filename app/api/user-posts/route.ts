@@ -1,6 +1,5 @@
-import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,12 +7,8 @@ const supabase = createClient(
 );
 
 export async function GET() {
-  const cookieStore = cookies();
-  const userId = cookieStore.get('user_id')?.value;
-
-  if (!userId) {
-    return NextResponse.json([], { status: 401 });
-  }
+  // ⚠ Thay user_id này bằng ID thật của bạn trong bảng posts
+  const userId = 'your_test_user_id_here';
 
   const { data, error } = await supabase
     .from('posts')
