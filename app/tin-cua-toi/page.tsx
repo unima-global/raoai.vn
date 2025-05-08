@@ -1,15 +1,34 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function TinCuaToi() {
   const [posts, setPosts] = useState<any[]>([]);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    fetch('/api/user-posts')
-      .then(res => res.json())
-      .then(data => setPosts(data))
-      .catch(err => console.error('Lỗi khi tải tin:', err));
+    const fetchData = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        console.log('Không có token Supabase');
+        return;
+      }
+
+      const res = await fetch('/api/user-posts', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await res.json();
+      setPosts(data);
+    };
+
+    fetchData();
   }, []);
 
   return (
@@ -25,7 +44,6 @@ export default function TinCuaToi() {
           key={post.id}
           className="mb-6 border rounded shadow-sm p-4 bg-white"
         >
-          {/* Hiển thị ảnh nếu có */}
           {post.image && (
             <div className="mb-3">
               <img
