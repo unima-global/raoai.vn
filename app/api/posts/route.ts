@@ -1,24 +1,22 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const limit = Number(searchParams.get('limit') || 12)
-
+export async function GET() {
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, images, status, created_at')
+    .select('id, title, image_url, created_at, status')
     .order('created_at', { ascending: false })
-    .limit(limit)
+    .limit(10); // Chỉ lấy 10 bài viết mới nhất
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Lỗi Supabase:', error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data);
 }
