@@ -1,20 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function TinCuaToi() {
   const [posts, setPosts] = useState<any[]>([]);
-  const supabase = createClientComponentClient();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
 
-      if (!session?.access_token) {
-        console.log('Không có token Supabase');
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session?.access_token) {
+        console.error('Không lấy được access token');
+        setLoading(false);
         return;
       }
 
@@ -26,6 +30,7 @@ export default function TinCuaToi() {
 
       const data = await res.json();
       setPosts(data);
+      setLoading(false);
     };
 
     fetchData();
@@ -35,15 +40,14 @@ export default function TinCuaToi() {
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-blue-700 mb-4">Tin của tôi</h1>
 
-      {posts.length === 0 && (
+      {loading && <p className="text-gray-500">Đang tải dữ liệu...</p>}
+
+      {!loading && posts.length === 0 && (
         <p className="text-gray-600">Bạn chưa đăng tin nào.</p>
       )}
 
       {posts.map(post => (
-        <div
-          key={post.id}
-          className="mb-6 border rounded shadow-sm p-4 bg-white"
-        >
+        <div key={post.id} className="mb-6 border rounded shadow-sm p-4 bg-white">
           {post.image && (
             <div className="mb-3">
               <img
