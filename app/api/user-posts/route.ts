@@ -11,14 +11,16 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, title, image, created_at, status')
+    .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Lỗi Supabase:', error.message);
+    console.error('🔥 Supabase error:', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  console.log('📦 Supabase data:', data);
 
   return NextResponse.json(data);
 }
