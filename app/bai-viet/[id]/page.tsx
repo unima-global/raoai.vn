@@ -55,6 +55,15 @@ export default function BaiVietChiTiet() {
         )}
       </h1>
 
+      {/* Trạng thái giao dịch */}
+      <p className="text-sm text-gray-700 mb-2">
+        <strong>Trạng thái:</strong>{' '}
+        {post.status === 'active' ? 'Đang hiển thị' :
+         post.status === 'sold' ? 'Đã bán' :
+         post.status === 'rented' ? 'Đã cho thuê' :
+         post.status === 'closed' ? 'Ngừng đăng' : 'Không xác định'}
+      </p>
+
       {/* Hình ảnh */}
       {post.image_url && (
         <img
@@ -85,7 +94,7 @@ export default function BaiVietChiTiet() {
         </p>
       )}
 
-      {/* Avatar + tên người đăng */}
+      {/* Người đăng */}
       {authorProfile && (
         <div className="flex items-center gap-3 mt-6 mb-4">
           <img
@@ -93,7 +102,10 @@ export default function BaiVietChiTiet() {
             alt="Avatar"
             className="w-10 h-10 rounded-full"
           />
-          <p className="font-medium">{authorProfile.name}</p>
+          <div>
+            <p className="font-medium">{authorProfile.name}</p>
+            <p className="text-xs text-gray-500">ID: {post.user_id}</p>
+          </div>
         </div>
       )}
 
