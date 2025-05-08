@@ -8,9 +8,9 @@ export default function TinCuaToi() {
 
   useEffect(() => {
     fetch('/api/user-posts')
-      .then(res => res.json())
-      .then(data => setPosts(data))
-      .catch(err => {
+      .then((res) => res.json())
+      .then((data) => setPosts(data))
+      .catch((err) => {
         console.error('Lỗi khi tải dữ liệu:', err);
         setPosts([]);
       })
@@ -28,7 +28,10 @@ export default function TinCuaToi() {
       )}
 
       {posts.map((post) => (
-        <div key={post.id} className="mb-6 border rounded shadow-sm p-4 bg-white">
+        <div
+          key={post.id}
+          className="mb-6 border rounded shadow-sm p-4 bg-white"
+        >
           {post.image && (
             <img
               src={post.image}
