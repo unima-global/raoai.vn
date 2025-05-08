@@ -17,15 +17,18 @@ export default function BaiVietChiTiet() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Lấy bài viết
       const res = await fetch(`/api/posts/${id}`);
       const postData = await res.json();
       setPost(postData);
 
+      // Lấy user đang đăng nhập
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session?.user) {
         setUser(sessionData.session.user);
       }
 
+      // Lấy thông tin người đăng bài
       if (postData?.user_id) {
         const { data: profile } = await supabase
           .from('user_profiles')
@@ -49,7 +52,7 @@ export default function BaiVietChiTiet() {
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-blue-700 mb-3">{post.title}</h1>
 
-      {/* Hình ảnh */}
+      {/* Ảnh */}
       {post.image_url && (
         <img
           src={post.image_url}
@@ -58,7 +61,7 @@ export default function BaiVietChiTiet() {
         />
       )}
 
-      {/* Mô tả bài viết */}
+      {/* Mô tả */}
       {post.description && (
         <p className="text-base text-gray-800 mb-4 whitespace-pre-line">
           {post.description}
@@ -79,9 +82,9 @@ export default function BaiVietChiTiet() {
         </p>
       )}
 
-      {/* Thông tin người đăng */}
+      {/* Avatar + tên người đăng */}
       {authorProfile && (
-        <div className="flex items-center gap-3 mt-6">
+        <div className="flex items-center gap-3 mt-6 mb-4">
           <img
             src={authorProfile.avatar || `https://ui-avatars.com/api/?name=${authorProfile.name}`}
             alt="Avatar"
@@ -93,24 +96,24 @@ export default function BaiVietChiTiet() {
 
       {/* Nếu là chủ bài viết */}
       {isOwner && (
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3 mt-3">
           <a
             href={`/sua-tin?id=${post.id}`}
             className="px-4 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
           >
-            Sửa tin
+            ✏️ Sửa tin
           </a>
           <button className="px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600">
-            Xoá tin
+            ❌ Xoá tin
           </button>
           <button className="px-4 py-1 bg-gray-600 text-white rounded hover:bg-gray-700">
-            {post.status === 'active' ? 'Ẩn tin' : 'Hiện tin'}
+            👁️ {post.status === 'active' ? 'Ẩn tin' : 'Hiện tin'}
           </button>
         </div>
       )}
 
-      {/* Các nút tương tác */}
-      <div className="flex gap-3 mt-6">
+      {/* Tương tác */}
+      <div className="flex flex-wrap gap-3 mt-6">
         <button className="px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700">
           ❤️ Yêu thích
         </button>

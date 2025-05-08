@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
-  // Bắt middleware áp dụng cho các route cần auth
-  matcher: ['/dang-tin', '/tin-cua-toi', '/admin/:path*'],
+  experimental: {}, // bỏ 'serverActions: false' nếu có lỗi
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
 };
 
 module.exports = nextConfig;
