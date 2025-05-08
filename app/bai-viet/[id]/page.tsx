@@ -17,18 +17,15 @@ export default function BaiVietChiTiet() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Lấy bài viết
       const res = await fetch(`/api/posts/${id}`);
       const postData = await res.json();
       setPost(postData);
 
-      // Lấy user đang đăng nhập
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session?.user) {
         setUser(sessionData.session.user);
       }
 
-      // Lấy thông tin người đăng bài
       if (postData?.user_id) {
         const { data: profile } = await supabase
           .from('user_profiles')
@@ -50,9 +47,15 @@ export default function BaiVietChiTiet() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-blue-700 mb-3">{post.title}</h1>
+      {/* Tiêu đề + xác thực */}
+      <h1 className="text-2xl font-bold text-blue-700 mb-3 flex items-center gap-2">
+        {post.title}
+        {post.verified && (
+          <span className="text-green-600 text-sm font-medium">✅ Đã xác thực</span>
+        )}
+      </h1>
 
-      {/* Ảnh */}
+      {/* Hình ảnh */}
       {post.image_url && (
         <img
           src={post.image_url}
