@@ -1,6 +1,13 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+
+declare global {
+  interface Window {
+    SpeechRecognition: any
+    webkitSpeechRecognition: any
+  }
+}
 
 export default function HomePage() {
   const [keyword, setKeyword] = useState('')
@@ -13,7 +20,7 @@ export default function HomePage() {
     { name: 'Cho thuê', slug: 'cho-thue', icon: '📦' },
     { name: 'Bán nhà', slug: 'ban-nha', icon: '🏘️' },
     { name: 'Điện thoại', slug: 'dien-thoai', icon: '📱' },
-    { name: 'Dịch vụ', slug: 'dich-vu', icon: '🛠️' },
+    { name: 'Dịch vụ', slug: 'dich-vu', icon: '🛠️' }
   ]
 
   useEffect(() => {
@@ -21,6 +28,23 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => setPosts(data))
   }, [])
+
+  const handleSearch = () => {
+    if (!keyword.trim()) return
+    window.location.href = `/tim-kiem?tu-khoa=${encodeURIComponent(keyword)}`
+  }
+
+  const handleVoice = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) return alert('Trình duyệt không hỗ trợ giọng nói!')
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'vi-VN'
+    recognition.onresult = (e: any) => {
+      const text = e.results[0][0].transcript
+      setKeyword(text)
+    }
+    recognition.start()
+  }
 
   return (
     <div>
@@ -33,13 +57,12 @@ export default function HomePage() {
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && window.location.href = `/tim-kiem?tu-khoa=${encodeURIComponent(keyword)}`}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className="w-full px-4 py-2 rounded text-black"
             placeholder="Tìm gì đó..."
           />
-          <button onClick={() => window.location.href = `/tim-kiem?tu-khoa=${encodeURIComponent(keyword)}`} className="bg-white text-blue-600 px-4 py-2 rounded font-semibold">
-            Tìm
-          </button>
+          <button onClick={handleVoice} className="bg-white text-black px-3 py-2 rounded">🎤</button>
+          <button onClick={handleSearch} className="bg-white text-blue-600 px-4 py-2 rounded font-semibold">Tìm</button>
         </div>
       </section>
 
