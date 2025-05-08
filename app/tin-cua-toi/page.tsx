@@ -24,6 +24,8 @@ export default function TinCuaToi() {
       .finally(() => setLoading(false));
   }, []);
 
+  const supabaseBaseUrl = 'https://ndcbkuxwgninbvqvmqnei.supabase.co/storage/v1/object/public/images';
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-blue-700 mb-4">Tin của tôi</h1>
@@ -39,13 +41,19 @@ export default function TinCuaToi() {
           key={post.id}
           className="mb-6 border rounded shadow-sm p-4 bg-white"
         >
+          {/* Hiển thị ảnh nếu có */}
           {post.image && (
             <img
-              src={post.image}
+              src={
+                post.image.startsWith('http')
+                  ? post.image
+                  : `${supabaseBaseUrl}/${post.image}`
+              }
               alt={post.title}
               className="rounded w-full h-auto max-h-[400px] object-cover mb-2"
             />
           )}
+
           <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
           <p className="text-sm text-gray-500">
             Ngày đăng: {new Date(post.created_at).toLocaleString()}
