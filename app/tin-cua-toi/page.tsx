@@ -26,19 +26,20 @@ export default function TinCuaToi() {
           key={post.id}
           className="mb-6 border rounded shadow-sm p-4 bg-white"
         >
-          {post.image && (
-            <Image
-              src={post.image}
-              alt={post.title}
-              width={800}
-              height={450}
-              className="rounded mb-3"
-            />
+          {/* Kiểm tra xem image có URL hợp lệ không */}
+          {post.image && typeof post.image === 'string' && post.image.startsWith('http') && (
+            <div className="mb-3">
+              <Image
+                src={post.image}
+                alt={post.title}
+                width={800}
+                height={450}
+                className="rounded"
+              />
+            </div>
           )}
 
-          <h2 className="text-xl font-semibold text-gray-800">
-            {post.title}
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800">{post.title}</h2>
 
           <p className="text-sm text-gray-500">
             Ngày đăng: {new Date(post.created_at).toLocaleString()}
@@ -53,7 +54,6 @@ export default function TinCuaToi() {
             )}
           </p>
 
-          {/* Nút xem chi tiết */}
           <a
             href={`/bai-viet/${post.id}`}
             className="inline-block mt-3 px-4 py-1 text-white bg-blue-600 rounded hover:bg-blue-700"
