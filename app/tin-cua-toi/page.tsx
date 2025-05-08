@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 
 export default function TinCuaToi() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -26,15 +25,13 @@ export default function TinCuaToi() {
           key={post.id}
           className="mb-6 border rounded shadow-sm p-4 bg-white"
         >
-          {/* Kiểm tra xem image có URL hợp lệ không */}
-          {post.image && typeof post.image === 'string' && post.image.startsWith('http') && (
+          {/* Hiển thị ảnh nếu có */}
+          {post.image && (
             <div className="mb-3">
-              <Image
+              <img
                 src={post.image}
                 alt={post.title}
-                width={800}
-                height={450}
-                className="rounded"
+                className="rounded w-full h-auto max-h-[400px] object-cover"
               />
             </div>
           )}
