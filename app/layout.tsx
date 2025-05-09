@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'RaoAI',
+  title: 'RAOAI',
   description: 'Tìm là thấy – Rao là bán',
 };
 
@@ -15,7 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} bg-gray-50 text-gray-800`}>
+        {children}
+      </body>
     </html>
   );
 }
