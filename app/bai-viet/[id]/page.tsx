@@ -41,6 +41,10 @@ export default function BaiVietChiTiet() {
 
   if (!post) return <div className="p-4 text-gray-600">Đang tải bài viết...</div>;
 
+  // Ghi log để kiểm tra
+  console.log('▶️ USER ID:', user?.id);
+  console.log('▶️ POST USER_ID:', post?.user_id);
+
   const isOwner = user && post.user_id === user.id;
 
   const statusMap = {
@@ -54,7 +58,6 @@ export default function BaiVietChiTiet() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      {/* Tiêu đề + xác thực */}
       <h1 className="text-2xl font-bold text-blue-700 mb-2 flex items-center gap-2">
         {post.title}
         {post.verified && (
@@ -62,12 +65,10 @@ export default function BaiVietChiTiet() {
         )}
       </h1>
 
-      {/* Trạng thái */}
       <p className="text-sm text-gray-700 mb-2">
         <strong>Trạng thái:</strong> {statusLabel}
       </p>
 
-      {/* Hình ảnh */}
       {post.image_url && (
         <img
           src={post.image_url}
@@ -76,28 +77,24 @@ export default function BaiVietChiTiet() {
         />
       )}
 
-      {/* Mô tả */}
       {post.description && (
         <p className="text-base text-gray-800 mb-4 whitespace-pre-line">
           {post.description}
         </p>
       )}
 
-      {/* Địa chỉ */}
       {post.location && (
         <p className="text-gray-600 mb-2">
           <strong>Địa chỉ:</strong> {post.location}
         </p>
       )}
 
-      {/* Liên hệ */}
       {post.contact && (
         <p className="text-gray-700 mb-4">
           <strong>Liên hệ:</strong> {post.contact}
         </p>
       )}
 
-      {/* Người đăng */}
       {authorProfile && (
         <div className="flex items-center gap-3 mt-6 mb-4">
           <img
@@ -112,7 +109,6 @@ export default function BaiVietChiTiet() {
         </div>
       )}
 
-      {/* Nếu là chủ bài viết */}
       {isOwner && (
         <div className="flex gap-3 mt-3">
           <a
@@ -130,7 +126,6 @@ export default function BaiVietChiTiet() {
         </div>
       )}
 
-      {/* Tương tác */}
       <div className="flex flex-wrap gap-3 mt-6">
         <button className="px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700">
           ❤️ Yêu thích
