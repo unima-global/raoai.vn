@@ -1,7 +1,21 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
+
+interface Post {
+  id: string;
+  title: string;
+  image_url: string | null;
+  status: string;
+  location: string;
+  created_at: string;
+  lat?: number;
+  lng?: number;
+}
 
 const categories = [
   { name: 'Xe cộ', icon: '🚗' },
@@ -14,20 +28,65 @@ const categories = [
   { name: 'Dịch vụ', icon: '🛠️' },
 ];
 
-const mockPosts = Array.from({ length: 12 }, (_, i) => ({
-  id: i + 1,
-  title: `Bài viết demo ${i + 1}`,
-  location: 'Hà Nội',
-  created_at: new Date().toISOString(),
-  image_url: `https://source.unsplash.com/400x300/?house&sig=${i + 1}`,
-  status: 'active',
-}));
-
 export default function HomePage() {
-  const renderPostCard = (post: any) => (
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    fetchPosts();
+    getUserLocation();
+  }, []);
+
+  useEffect(() => {
+    if (userLocation) fetchNearby();
+  }, [userLocation]);
+
+  const fetchPosts = async () => {
+    const { data } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(12);
+    setPosts(data || []);
+  };
+
+  const fetchNearby = async () => {
+    const { data } = await supabase.from('posts').select('*').limit(100);
+    const filtered = (data || []).filter((post: any) => {
+      if (!post.lat || !post.lng || !userLocation) return false;
+      const dx = post.lat - userLocation.lat;
+      const dy = post.lng - userLocation.lng;
+      const d = Math.sqrt(dx * dx + dy * dy) * 111;
+      return d <= 5;
+    });
+    setNearbyPosts(filtered.slice(0, 9));
+  };
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        },
+        () => setUserLocation(null)
+      );
+    }
+  };
+
+  const renderPostCard = (post: Post) => (
     <div key={post.id} className="bg-white shadow-sm border rounded-lg p-3 card-hover">
       <img
-        src={post.image_url}
+        src={post.image_url || `https://source.unsplash.com/400x300/?house&sig=${post.id}`}
         alt={post.title}
         className="w-full h-40 object-cover rounded"
       />
@@ -38,7 +97,9 @@ export default function HomePage() {
         Trạng thái:{' '}
         <span className="text-green-600 font-medium">✅ Đang hiển thị</span>
       </p>
-      <p className="text-blue-600 text-sm mt-2 block">Xem chi tiết</p>
+      <Link href={`/bai-viet/${post.id}`} className="text-blue-600 text-sm mt-2 block">
+        Xem chi tiết
+      </Link>
     </div>
   );
 
@@ -65,7 +126,12 @@ export default function HomePage() {
 
       <h2 className="section-title mt-10">🆕 Tin mới nhất</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {mockPosts.map((post) => renderPostCard(post))}
+        {posts.map((post) => renderPostCard(post))}
+      </div>
+
+      <h2 className="section-title mt-10">📍 Tin gần bạn (trong vòng 5km)</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+        {nearbyPosts.map((post) => renderPostCard(post))}
       </div>
     </div>
   );
