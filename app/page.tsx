@@ -35,19 +35,19 @@ export default function HomePage() {
   );
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const [nearbyPosts, setNearbyPosts] = useState<Post[]>([]);
+  const [nearby, setNearby] = useState<Post[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    fetchPosts();
-    getUserLocation();
+    loadPosts();
+    getLocation();
   }, []);
 
   useEffect(() => {
-    if (userLocation) fetchNearby();
+    if (userLocation) loadNearby();
   }, [userLocation]);
 
-  const fetchPosts = async () => {
+  const loadPosts = async () => {
     const { data } = await supabase
       .from('posts')
       .select('*')
@@ -57,34 +57,31 @@ export default function HomePage() {
     setPosts(data || []);
   };
 
-  const fetchNearby = async () => {
-    const { data } = await supabase.from('posts').select('*').limit(100);
-    const filtered = (data || []).filter((post: any) => {
-      if (!post.lat || !post.lng || !userLocation) return false;
-      const dx = post.lat - userLocation.lat;
-      const dy = post.lng - userLocation.lng;
-      const d = Math.sqrt(dx * dx + dy * dy) * 111;
-      return d <= 5;
+  const loadNearby = async () => {
+    const { data } = await supabase.from('posts').select('*');
+    const filtered = (data || []).filter((p: any) => {
+      if (!p.lat || !p.lng || !userLocation) return false;
+      const dx = p.lat - userLocation.lat;
+      const dy = p.lng - userLocation.lng;
+      return Math.sqrt(dx * dx + dy * dy) * 111 <= 5;
     });
-    setNearbyPosts(filtered.slice(0, 9));
+    setNearby(filtered.slice(0, 9));
   };
 
-  const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setUserLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          });
-        },
-        () => setUserLocation(null)
-      );
-    }
+  const getLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        }),
+      () => setUserLocation(null)
+    );
   };
 
   const renderPostCard = (post: Post) => (
-    <div key={post.id} className="bg-white shadow-sm border rounded-lg p-3 card-hover">
+    <div key={post.id} className="bg-white border rounded-lg p-3 shadow-sm card-hover">
       <img
         src={post.image_url || `https://source.unsplash.com/400x300/?house&sig=${post.id}`}
         alt={post.title}
@@ -106,7 +103,7 @@ export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-blue-700 mb-2">TÌM LÀ THẤY – RAO LÀ BÁN</h1>
-      <p className="text-gray-600 mb-6">Nền tảng rao vặt thông minh của hệ sinh thái UNIMA.AI</p>
+      <p className="text-gray-600 mb-6">Nền tảng rao vặt thông minh thuộc hệ sinh thái UNIMA.AI</p>
 
       <h2 className="section-title">📂 Danh mục nổi bật</h2>
       <Swiper spaceBetween={12} slidesPerView={2.3} breakpoints={{
@@ -131,7 +128,7 @@ export default function HomePage() {
 
       <h2 className="section-title mt-10">📍 Tin gần bạn (trong vòng 5km)</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-        {nearbyPosts.map((post) => renderPostCard(post))}
+        {nearby.map((post) => renderPostCard(post))}
       </div>
     </div>
   );
