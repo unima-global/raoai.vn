@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
-import { useSession } from '@supabase/auth-helpers-react';
 
 export default function BaiVietChiTiet() {
   const { id } = useParams();
