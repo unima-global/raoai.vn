@@ -43,12 +43,14 @@ export default function BaiVietChiTiet() {
 
   const isOwner = user && post.user_id === user.id;
 
-  const statusLabel = {
+  const statusMap = {
     active: '🟢 Đang hiển thị',
     sold: '🔴 Đã bán',
     rented: '🔵 Đã cho thuê',
     closed: '⚫ Ngừng đăng',
-  }[post.status] || '⚪ Không xác định';
+  } as const;
+
+  const statusLabel = statusMap[post.status as keyof typeof statusMap] || '⚪ Không xác định';
 
   return (
     <div className="max-w-3xl mx-auto p-4">
