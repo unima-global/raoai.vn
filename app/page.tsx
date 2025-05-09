@@ -9,7 +9,7 @@ import 'swiper/css';
 interface Post {
   id: string;
   title: string;
-  image_url: string;
+  image_url: string | null;
   status: string;
   location: string;
   created_at: string;
@@ -89,8 +89,16 @@ export default function HomePage() {
   };
 
   const renderPostCard = (post: Post) => (
-    <div key={post.id} className="border rounded-md p-3 shadow-sm bg-white">
-      <img src={post.image_url} className="w-full h-40 object-cover rounded" alt={post.title} />
+    <div key={post.id} className="border rounded-md p-3 shadow-sm bg-white card-hover">
+      <img
+        src={
+          post.image_url
+            ? post.image_url
+            : 'https://source.unsplash.com/400x300/?house,real-estate,vietnam'
+        }
+        className="w-full h-40 object-cover rounded"
+        alt={post.title}
+      />
       <h3 className="font-semibold mt-2">{post.title}</h3>
       <p className="text-sm text-gray-500">{post.location}</p>
       <p className="text-sm mt-1">📅 {new Date(post.created_at).toLocaleString()}</p>
@@ -138,5 +146,4 @@ export default function HomePage() {
       </div>
     </div>
   );
-
 }
