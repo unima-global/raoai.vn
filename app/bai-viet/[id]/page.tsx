@@ -21,6 +21,9 @@ export default function BaiVietChiTiet() {
       const postData = await res.json();
       setPost(postData);
 
+      // 🔍 Kiểm tra dữ liệu status
+      console.log('🧾 POST STATUS:', postData?.status);
+
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session?.user) {
         setUser(sessionData.session.user);
@@ -44,6 +47,7 @@ export default function BaiVietChiTiet() {
   // Ghi log để kiểm tra
   console.log('▶️ USER ID:', user?.id);
   console.log('▶️ POST USER_ID:', post?.user_id);
+  console.log('🧾 POST STATUS:', post?.status);
 
   const isOwner = user && post.user_id === user.id;
 
