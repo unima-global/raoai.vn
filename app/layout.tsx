@@ -1,29 +1,24 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import Navbar from '@/components/Navbar'
-import Footer from './components/Footer'
-const inter = Inter({ subsets: ['latin'] })
+import './globals.css';
+import { createBrowserClient } from '@supabase/ssr';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
 
-export const metadata: Metadata = {
-  title: 'RaoAI.vn - Tìm là thấy, Rao là bán!',
-  description: 'Nền tảng rao vặt thông minh thuộc hệ sinh thái CHỢ AI',
-}
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="vi">
-      <body className={inter.className}>
-        <Navbar />
-        <main className="min-h-screen bg-white">
+      <body>
+        <SessionContextProvider supabaseClient={supabase}>
           {children}
-        </main>
-        <Footer />
+        </SessionContextProvider>
       </body>
     </html>
-  )
+  );
 }

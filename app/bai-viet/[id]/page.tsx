@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
+import { useSession } from '@supabase/auth-helpers-react';
 
 export default function BaiVietChiTiet() {
   const { id } = useParams();
@@ -10,10 +11,18 @@ export default function BaiVietChiTiet() {
   const [user, setUser] = useState<any>(null);
   const [authorProfile, setAuthorProfile] = useState<any>(null);
 
+  const session = useSession();
+
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  useEffect(() => {
+    if (session?.user) {
+      setUser(session.user);
+    }
+  }, [session]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,13 +30,7 @@ export default function BaiVietChiTiet() {
       const postData = await res.json();
       setPost(postData);
 
-      // 🔍 Kiểm tra dữ liệu status
       console.log('🧾 POST STATUS:', postData?.status);
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData?.session?.user) {
-        setUser(sessionData.session.user);
-      }
 
       if (postData?.user_id) {
         const { data: profile } = await supabase
@@ -44,7 +47,6 @@ export default function BaiVietChiTiet() {
 
   if (!post) return <div className="p-4 text-gray-600">Đang tải bài viết...</div>;
 
-  // Ghi log để kiểm tra
   console.log('▶️ USER ID:', user?.id);
   console.log('▶️ POST USER_ID:', post?.user_id);
   console.log('🧾 POST STATUS:', post?.status);
