@@ -17,21 +17,15 @@ interface Post {
   lng?: number;
 }
 
-interface Category {
-  name: string;
-  slug: string;
-  icon: string;
-}
-
-const categories: Category[] = [
-  { name: 'Xe cộ', slug: 'xe-co', icon: '🚗' },
-  { name: 'Ô tô', slug: 'oto', icon: '🚙' },
-  { name: 'Xe máy', slug: 'xe-may', icon: '🏍️' },
-  { name: 'Nhà đất', slug: 'nha-dat', icon: '🏠' },
-  { name: 'Cho thuê', slug: 'cho-thue', icon: '📦' },
-  { name: 'Bán nhà', slug: 'ban-nha', icon: '🏡' },
-  { name: 'Điện thoại', slug: 'dien-thoai', icon: '📱' },
-  { name: 'Dịch vụ', slug: 'dich-vu', icon: '🛠️' },
+const categories = [
+  { name: 'Xe cộ', icon: '🚗' },
+  { name: 'Ô tô', icon: '🚙' },
+  { name: 'Xe máy', icon: '🏍️' },
+  { name: 'Nhà đất', icon: '🏠' },
+  { name: 'Cho thuê', icon: '📦' },
+  { name: 'Bán nhà', icon: '🏡' },
+  { name: 'Điện thoại', icon: '📱' },
+  { name: 'Dịch vụ', icon: '🛠️' },
 ];
 
 export default function HomePage() {
@@ -89,13 +83,9 @@ export default function HomePage() {
   };
 
   const renderPostCard = (post: Post) => (
-    <div key={post.id} className="border rounded-md p-3 shadow-sm bg-white card-hover">
+    <div key={post.id} className="bg-white shadow-sm border rounded-lg p-3 card-hover">
       <img
-        src={
-          post.image_url
-            ? post.image_url
-            : 'https://source.unsplash.com/400x300/?house,real-estate,vietnam'
-        }
+        src={post.image_url || 'https://source.unsplash.com/400x300/?house'}
         className="w-full h-40 object-cover rounded"
         alt={post.title}
       />
@@ -105,7 +95,7 @@ export default function HomePage() {
       <p className="text-sm mt-1">
         Trạng thái:{' '}
         <span className="text-green-600 font-medium">
-          {post.status === 'active' ? '✅ Đang hiển thị' : '⏸️ Không hiển thị'}
+          {post.status === 'active' ? '✅ Đang hiển thị' : '⏸️ Ẩn'}
         </span>
       </p>
       <Link href={`/bai-viet/${post.id}`} className="text-blue-600 text-sm mt-2 block">
@@ -116,15 +106,21 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* HERO */}
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-bold text-blue-700 mb-2">TÌM LÀ THẤY – RAO LÀ BÁN</h1>
+        <p className="text-gray-600 mb-4">Nền tảng rao vặt thông minh thuộc hệ sinh thái UNIMA.AI</p>
+      </div>
+
       {/* DANH MỤC */}
-      <h2 className="text-xl font-bold mb-4">📂 Danh mục nổi bật</h2>
+      <h2 className="section-title">📂 Danh mục nổi bật</h2>
       <Swiper spaceBetween={12} slidesPerView={2.3} breakpoints={{
         640: { slidesPerView: 3.2 },
         768: { slidesPerView: 5 },
         1024: { slidesPerView: 8 }
       }}>
         {categories.map((cat) => (
-          <SwiperSlide key={cat.slug}>
+          <SwiperSlide key={cat.name}>
             <div className="border px-3 py-2 rounded text-center bg-white hover:bg-blue-100 cursor-pointer text-sm">
               <span className="text-lg block">{cat.icon}</span>
               {cat.name}
@@ -134,13 +130,13 @@ export default function HomePage() {
       </Swiper>
 
       {/* TIN MỚI NHẤT */}
-      <h2 className="text-xl font-bold mt-10 mb-4">🆕 Tin mới nhất</h2>
+      <h2 className="section-title mt-10">🆕 Tin mới nhất</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {newPosts.map((post) => renderPostCard(post))}
       </div>
 
       {/* TIN GẦN BẠN */}
-      <h2 className="text-xl font-bold mt-10 mb-4">📍 Tin gần bạn (trong vòng 5km)</h2>
+      <h2 className="section-title mt-10">📍 Tin gần bạn (trong vòng 5km)</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
         {nearbyPosts.map((post) => renderPostCard(post))}
       </div>
