@@ -10,26 +10,28 @@ export default function BaiVietChiTiet() {
   const [user, setUser] = useState<any>(null);
   const [authorProfile, setAuthorProfile] = useState<any>(null);
 
-  const session = useSession();
-
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
+  // ✅ Lấy user hiện tại
   useEffect(() => {
-    if (session?.user) {
-      setUser(session.user);
-    }
-  }, [session]);
+    const fetchUser = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
+        setUser(sessionData.session.user);
+      }
+    };
+    fetchUser();
+  }, []);
 
+  // ✅ Lấy dữ liệu bài viết và thông tin người đăng
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetch(`/api/posts/${id}`);
       const postData = await res.json();
       setPost(postData);
-
-      console.log('🧾 POST STATUS:', postData?.status);
 
       if (postData?.user_id) {
         const { data: profile } = await supabase
